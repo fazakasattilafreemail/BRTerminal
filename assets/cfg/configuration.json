@@ -1,0 +1,8 @@
+{
+  "app_name": "APP Name",
+  "base_url": "https://YourDomain.com/",
+  "node_url": "https://NodeHost.com:PORT",
+  "api_user": "APIUSER",
+  "api_key": "APIPWD",
+  "share_text": "Leuke | Social Platform For Short Videos https://leuke.page.link/open-app"
+}

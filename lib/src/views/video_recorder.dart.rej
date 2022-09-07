@@ -1,0 +1,18 @@
+diff a/flutter_app/lib/src/views/video_recorder.dart b/flutter_app/lib/src/views/video_recorder.dart	(rejected hunks)
+@@ -1464,14 +1464,14 @@
+ }
+ 
+ class TrimmerView extends StatefulWidget {
+-  final Trimmer trimmer;
++//  final Trimmer trimmer;
+   final ValueSetter<String> onVideoSaved;
+   final VoidCallback onSkip;
+   final double maxLength;
+   final String sound;
+   final bool showSkip;
+   TrimmerView({
+-    this.trimmer,
++//    this.trimmer,
+     this.onVideoSaved,
+     this.onSkip,
+     this.maxLength,
