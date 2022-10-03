@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:Leuke/src/helpers/shared_pref.dart';
+import 'package:Leuke/src/views/splash_screen_view.dart';
+import 'package:splashscreen/splashscreen.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluttertoast/fluttertoast.dart';
@@ -48,115 +50,156 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String link = "";
+  String link = null;
+  bool linkAsked = false;
   @override
   void initState() {
-    SharedPreferencesHelper.setDeepLinkIds(<String>[]).then((value) {
-      initUniLinks().then((value) => this.setState(() {
-        link += value;
-        Fluttertoast.showToast(msg: link);
-        try {
-          if (link.contains("?v=")) {
-            link = link.split("?v=")[1];
-            SharedPreferencesHelper.setDeepLinkIds(
-                link.split(",")).then((value) {
-              super.initState();
-            });
-          }
+    // SharedPreferencesHelper.setDeepLinkIds(<String>[]).then((value) {
+    //   initUniLinks().then((value) => this.setState(() {
+    //     link += value;
+    //     Fluttertoast.showToast(msg: link);
+    //     try {
+    //       if (link.contains("?v=")) {
+    //         link = link.split("?v=")[1];
+    //         SharedPreferencesHelper.setDeepLinkIds(
+    //             link.split(",")).then((value) {
+    //
+    //         });
+    //       }
+    //
+    //
+    //     }catch(e){
+    //
+    //     }
+    //   })).onError((error, stackTrace) => {});
+    // });
+    super.initState();
 
-
-        }catch(e){
-          super.initState();
-        }
-      })).onError((error, stackTrace) => super.initState());
-    });
-
-    
     
   }
   Future<String> initUniLinks() async {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
+      print('deeplink getInitialLink start');
       final initialLink = await getInitialLink();
+      print('deeplink getInitialLink end');
+      String _link = initialLink;
+      // Fluttertoast.showToast(msg: link);
+      // try {
+      //   if (_link.contains("?v=")) {
+      //     _link = _link.split("?v=")[1];
+      //     print('deeplink 000 start');
+      //     await SharedPreferencesHelper.setDeepLinkIds(
+      //         _link.split(","));
+      //     print('deeplink 000 start');
+      //     await SharedPreferencesHelper.setDeepLinkProfile('0');
+      //
+      //   } else if (_link.contains("?v1=")) {
+      //     _link = _link.split("?v1=")[1];
+      //     print('deeplink 111 start');
+      //     await SharedPreferencesHelper.setDeepLinkIds(
+      //         _link.split(","));
+      //     print('deeplink 111 end');
+      //     await SharedPreferencesHelper.setDeepLinkProfile('1');
+      //     print('deeplink profile 1');
+      //   } else {
+      //     print('deeplink nullazva start');
+      //     await SharedPreferencesHelper.setDeepLinkIds(<String>[]);
+      //     print('deeplink nullazva end');
+      //   }
+      //
+      //
+      //
+      // }catch(e){
+      //   print('deeplink nullazva catch start');
+      //   await SharedPreferencesHelper.setDeepLinkIds(<String>[]);
+      //   print('deeplink nullazva catch end');
+      // }
+
+      if (_link!=null && _link.contains("v")) {
+        SharedPreferencesHelper.setDeepLink(
+            _link).then((value) {
+          setState(() {
+            link = _link;
+            linkAsked = true;
+          });
+        });
+      } else {
+        SharedPreferencesHelper.setDeepLink(
+            "").then((value) {
+          setState(() {
+            link = _link;
+            linkAsked = true;
+          });
+        });
+      }
+
       // Parse the link and warn the user, if it is not correct,
       // but keep in mind it could be `null`.
       return initialLink;
-    } on PlatformException {
-      // Handle exception by warning the user their action did not succeed
-      // return?
+    } catch(e){
+      print('deeplink nullazva catch1 start');
+      await SharedPreferencesHelper.setDeepLinkIds(<String>[]);
+      SharedPreferencesHelper.setDeepLink(
+          "").then((value) {
+        setState(() {
+          link = "";
+          linkAsked = true;
+        });
+      });
+
     }
+    return null;
   }
   @override
   Widget build(BuildContext context) {
 //    SystemChrome.setPreferredOrientations([
 //      DeviceOrientation.landscapeLeft,
 //    ]);
+
+    if (!linkAsked) {
+      initUniLinks();
+    }
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
-    return MaterialApp(
-      title: '${GlobalConfiguration().get('app_name')}',
-      navigatorObservers: [routeObserver],
-      initialRoute: '/splash-screen',
-      onGenerateRoute: RouteGenerator.generateRoute,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'ProductSans',
-        primaryColor: Colors.white,
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-            elevation: 0, foregroundColor: Colors.white),
-        brightness: Brightness.light,
-        dividerColor: Color(0xff36C5D3).withOpacity(0.1),
-        focusColor: Color(0xff36C5D3).withOpacity(1),
-        hintColor: Color(0xff000000).withOpacity(0.2), colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Color(0xff36C5D3)),
-        // textTheme: TextTheme(
-        //   headline5:
-        //       TextStyle(fontSize: 22.0, color: Color(0xff000000), height: 1.3),
-        //   headline4: TextStyle(
-        //       fontSize: 20.0,
-        //       fontWeight: FontWeight.w700,
-        //       color: Color(0xff000000),
-        //       height: 1.3),
-        //   headline3: TextStyle(
-        //     fontSize: 22.0,
-        //     fontWeight: FontWeight.w400,
-        //     color: Color(0xff000000),
-        //   ),
-        //   headline2: TextStyle(
-        //     fontSize: 20.0,
-        //     fontWeight: FontWeight.w500,
-        //     color: Color(0xff000000),
-        //   ),
-        //   headline1: TextStyle(
-        //       fontSize: 26.0,
-        //       fontWeight: FontWeight.w300,
-        //       color: Color(0xff000000),
-        //       height: 1.4),
-        //   subtitle1: TextStyle(
-        //       fontSize: 18.0,
-        //       fontWeight: FontWeight.w500,
-        //       color: Color(0xff000000),
-        //       height: 1.3),
-        //   headline6: TextStyle(
-        //       fontSize: 17.0,
-        //       fontWeight: FontWeight.w700,
-        //       color: Color(0xff000000),
-        //       height: 1.3),
-        //   bodyText2: TextStyle(
-        //       fontSize: 15.0,
-        //       fontWeight: FontWeight.w500,
-        //       color: Color(0xff000000),
-        //       height: 1.2),
-        //   bodyText1: TextStyle(
-        //       fontSize: 15.0,
-        //       fontWeight: FontWeight.w400,
-        //       color: Color(0xff000000),
-        //       height: 1.3),
-        //   caption: TextStyle(
-        //       fontSize: 14.0,
-        //       fontWeight: FontWeight.w300,
-        //       color: Color(0xff000000).withOpacity(0.5),
-        //       height: 1.2),
-        // ),
-      ),
-    );
+      // return
+      // MaterialApp(
+      //   title: '${GlobalConfiguration().get('app_name')}',
+      //   navigatorObservers: [routeObserver],
+      //   initialRoute: '/splash-screen',
+      //   onGenerateRoute: RouteGenerator.generateRoute,
+      //   debugShowCheckedModeBanner: false,
+      //   theme: ThemeData(
+      //     fontFamily: 'ProductSans',
+      //     primaryColor: Colors.white,
+      //     floatingActionButtonTheme: FloatingActionButtonThemeData(
+      //         elevation: 0, foregroundColor: Colors.white),
+      //     brightness: Brightness.light,
+      //     dividerColor: Color(0xff36C5D3).withOpacity(0.1),
+      //     focusColor: Color(0xff36C5D3).withOpacity(1),
+      //     hintColor: Color(0xff000000).withOpacity(0.2), colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Color(0xff36C5D3)),
+      //   ),
+      // );
+      return   linkAsked!=null && linkAsked?MaterialApp(
+        title: '${GlobalConfiguration().get('app_name')}',
+          navigatorObservers: [routeObserver],
+          initialRoute: '/splash-screen',
+          onGenerateRoute: RouteGenerator.generateRoute,
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            fontFamily: 'ProductSans',
+            primaryColor: Colors.white,
+            floatingActionButtonTheme: FloatingActionButtonThemeData(
+                elevation: 0, foregroundColor: Colors.white),
+            brightness: Brightness.light,
+            dividerColor: Color(0xff36C5D3).withOpacity(0.1),
+            focusColor: Color(0xff36C5D3).withOpacity(1),
+            hintColor: Color(0xff000000).withOpacity(0.2), colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Color(0xff36C5D3)),
+          ),
+
+      ):Container(
+        color: Colors.red,
+      );
+
+
   }
 }

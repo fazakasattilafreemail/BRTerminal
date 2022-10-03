@@ -690,7 +690,6 @@ class _CompleteProfileViewState extends StateMVC<CompleteProfileView> with Singl
                                             }
                                           },
                                           items: _con.gender,
-                                          mode: Mode.BOTTOM_SHEET,
                                           // onFind: (String filter) => getData(filter),
                                           itemAsString: (Gender u) => u.name,
                                           onChanged: (Gender data) {

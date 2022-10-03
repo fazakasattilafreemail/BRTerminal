@@ -9,22 +9,83 @@ import '../controllers/splash_screen_controller.dart';
 import '../repositories/user_repository.dart' as userRepo;
 import '../repositories/video_repository.dart' as videoRepo;
 
-class SplashScreen extends StatefulWidget {
+class SplashScreenMy extends StatefulWidget {
+  String deepList = null;
   @override
   State<StatefulWidget> createState() {
-    return SplashScreenState();
+    return SplashScreenMyState(this.deepList);
   }
+  SplashScreenMy(this.deepList);
 }
 
-class SplashScreenState extends StateMVC<SplashScreen> {
+class SplashScreenMyState extends StateMVC<SplashScreenMy> {
+
+  String deepList = null;
   static const platform = const MethodChannel('com.flutter.epic/epic');
   String dataShared = "No Data";
   SplashScreenController _con;
   BuildContext context;
-  SplashScreenState() : super(SplashScreenController()) {
+  SplashScreenMyState(String deepList) : super(SplashScreenController()) {
     _con = controller;
+    this.deepList = deepList;
   }
-  bool isDeepLink = true;
+  String isDeepLink = "";
+  Future<Null> getSharedPrefs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    print('deeplink lekerdez splashben start');
+    // List<String> l = await prefs.getStringList("deeplinkids") ?? <String>[];
+    SharedPreferencesHelper.getDeepLink().then((value) {
+      deepList = value;
+
+      print('deeplink lekerdez splashben end'+(deepList!=null?deepList.toString():"null"));
+
+      if (deepList !=null) {
+        try {
+          String _link = deepList;
+          if (_link.contains("?v=")) {
+            _link = _link.split("?v=")[1];
+            print('deeplink 000 start');
+            SharedPreferencesHelper.setDeepLinkIds(
+                _link.split(",")).then((value) {
+              SharedPreferencesHelper.setDeepLinkProfile('0').then((value) {
+                setState(() { isDeepLink = 'true';});
+              });
+            });
+
+          } else if (_link.contains("?v1=")) {
+            _link = _link.split("?v1=")[1];
+            SharedPreferencesHelper.setDeepLinkIds(
+                _link.split(",")).then((value) {
+              SharedPreferencesHelper.setDeepLinkProfile('1').then((value) {
+                setState(() { isDeepLink = 'true';});
+              });
+            });
+          } else {
+            print('deeplink nullazva start');
+            SharedPreferencesHelper.setDeepLinkIds(<String>[]).then((value) {
+              setState(() { isDeepLink = 'false';});
+            });
+            print('deeplink nullazva end');
+          }
+
+
+
+        }catch(e){
+          SharedPreferencesHelper.setDeepLinkIds(<String>[]).then((value) {
+            setState(() { isDeepLink = 'false';});
+          });
+        }
+
+      } else {
+        SharedPreferencesHelper.setDeepLinkIds(<String>[]).then((value) {
+          setState(() { isDeepLink = 'false';});
+        });
+
+
+      }
+    });
+
+  }
 
   @override
   void initState() {
@@ -34,15 +95,8 @@ class SplashScreenState extends StateMVC<SplashScreen> {
 //      DeviceOrientation.landscapeLeft,
 //    ]);
 //     loadData();
-  SharedPreferencesHelper.getDeepLinkIds().then((value) {
-    if (value!=null && value.length > 0 ){
-      loadData("playersszereda");
-    } else {
-      setState(() {
-        isDeepLink = false;
-      });
-    }
-  });
+
+    getSharedPrefs();
   }
 
   printHashKeyOnConsoleLog() async {
@@ -104,23 +158,90 @@ class SplashScreenState extends StateMVC<SplashScreen> {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
         return Future.value(true);
       },
-      child: isDeepLink?Stack(
-        children: <Widget>[
-          Container(
+      child: isDeepLink=='true'?Material(
+        child: Container(
+          color:Colors.black,
+          child: Stack(
+            children: <Widget>[
+              Container(
 
 
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              image: DecorationImage(
-                image: AssetImage(
-                  "assets/images/splash.png",
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  image: DecorationImage(
+                    image: AssetImage(
+                      "assets/images/splash.png",
+                    ),
+                    fit: BoxFit.scaleDown,
+                  ),
                 ),
-                fit: BoxFit.scaleDown,
               ),
-            ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
+                      onTap: () async {
+
+                        if (!isAlreadyTapped) {
+                          loadData('playersszereda');
+                        }
+                        setState(() {
+                          isAlreadyTapped = true;
+                        });
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
+                        alignment: Alignment.center,
+                        child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(15.0),
+                              color:  Colors.red.withOpacity(0.4),
+                            ),
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Lejátszás a linkről",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+
+                        ),
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+              isAlreadyTapped?Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  margin: EdgeInsets.only(bottom: 50),
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ):Container()
+            ],
           ),
-        ],
-      ):
+        ),
+      ):isDeepLink=='false'?
       Material(
         child: Container(
           color:Colors.black,
@@ -159,48 +280,7 @@ class SplashScreenState extends StateMVC<SplashScreen> {
                         });
                       },
                       child: Container(
-
-                        margin: EdgeInsets.only(left: 80,right: 80, bottom: 20),
-                        child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.circular(15.0),
-                              color:  Colors.red.withOpacity(0.7),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Gernyeszeg 2022",//FKCS
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        /*bool b = await SharedPreferencesHelper.getNeedPIN();
-                        SharedPreferences preferences = await SharedPreferences.getInstance();
-                        await preferences.clear();
-                        await SharedPreferencesHelper.setNeedPIN(b);
-                        if (!isAlreadyTapped) {
-                          loadData('1');
-                        }
-                        setState(() {
-                          isAlreadyTapped = true;
-                        });*/
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(left: 80,right: 80, bottom: 20),
+                        margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
                         alignment: Alignment.center,
                         child: DecoratedBox(
                             decoration: BoxDecoration(
@@ -215,7 +295,7 @@ class SplashScreenState extends StateMVC<SplashScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      "FKCS",
+                                      "FK CSíkszereda / Nyárádszereda / Ballon",
                                       style: TextStyle(
                                         fontWeight: FontWeight.normal,
                                         color: Colors.white,
@@ -231,7 +311,7 @@ class SplashScreenState extends StateMVC<SplashScreen> {
                     ),
                     InkWell(
                       onTap: () async {
-                        /*bool b = await SharedPreferencesHelper.getNeedPIN();
+                        bool b = await SharedPreferencesHelper.getNeedPIN();
                         SharedPreferences preferences = await SharedPreferences.getInstance();
                         await preferences.clear();
                         await SharedPreferencesHelper.setNeedPIN(b);
@@ -240,10 +320,10 @@ class SplashScreenState extends StateMVC<SplashScreen> {
                         }
                         setState(() {
                           isAlreadyTapped = true;
-                        });*/
+                        });
                       },
                       child: Container(
-                        margin: EdgeInsets.only(left: 80,right: 80, bottom: 20),
+                        margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
                         alignment: Alignment.center,
                         child: DecoratedBox(
                             decoration: BoxDecoration(
@@ -291,7 +371,43 @@ class SplashScreenState extends StateMVC<SplashScreen> {
             ],
           ),
         ),
+      ):Material(
+        child: Container(
+          color:Colors.black,
+          child: Stack(
+            children: <Widget>[
+              Container(
+
+
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  image: DecorationImage(
+                    image: AssetImage(
+                      "assets/images/splash.png",
+                    ),
+                    fit: BoxFit.scaleDown,
+                  ),
+                ),
+              ),
+
+              isAlreadyTapped?Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  margin: EdgeInsets.only(bottom: 50),
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ):Container()
+            ],
+          ),
+        ),
       ),
     );
   }
+
+
 }

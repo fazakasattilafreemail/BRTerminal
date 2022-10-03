@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+// import 'dart:html' as html;
 import 'dart:io';
+import 'package:fullscreen/fullscreen.dart';
 import 'dart:ui' as ui;
 import 'package:Leuke/src/helpers/shared_pref.dart';
 import 'package:Leuke/src/models/elems.dart';
@@ -65,6 +67,7 @@ class _DashboardWidgetState extends StateMVC<DashboardWidget> with SingleTickerP
   Map<String,String> myTeams;
 String mSelectedProfile;
   Map<String, dynamic> videoMapFromHistory;
+  bool isFullScreen = false;
   @override
   void didChangeMetrics() {
     final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
@@ -343,9 +346,9 @@ String mSelectedProfile;
       }
     }
   }
-
   @override
   dispose() async {
+    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
     if (!videoRepo.homeCon.value.showFollowingPage.value) {
       videoRepo.homeCon.value.videoController(videoRepo.homeCon.value.swiperIndex)?.pause();
     } else {
@@ -766,7 +769,7 @@ String mSelectedProfile;
                 margin:EdgeInsets.only(top: 35, right: 80),
                 height: 48.0,
                 child: Text(
-                  "More videos: ",
+                  /*"More videos: "*/"",
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -811,8 +814,9 @@ String mSelectedProfile;
             showMergeDialog?buildMergeDialog():Container(),
             showMergeDialog?buildMergeCheck():Container(),
             showAdminDialog?buildAdminDialog():Container(),
-            buildArrowNavigation(true),//web buildhez
+            // buildArrowNavigation(true),//web buildhez
             buildAdminMenuButton(),
+            // buildFullScreenButton(),
       Positioned(
         bottom: 0,
         child:
@@ -1156,6 +1160,38 @@ String mSelectedProfile;
                             ),
                           ),
                         ),
+
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              showAdminDialog = false;
+                              if (videoRepo.videosData!=null && videoRepo.videosData.value!=null && videoRepo.videosData.value.videos!=null
+                                  && videoRepo.homeCon!=null && videoRepo.homeCon.value!=null && videoRepo.homeCon.value.swiperIndex!=null&& videoRepo.videosData.value.videos.length>videoRepo.homeCon.value.swiperIndex){
+                                deleteVideo(videoRepo.videosData.value.videos[videoRepo.homeCon.value.swiperIndex].videoId.toString()).then((data1) async {
+                                  Fluttertoast.showToast(msg: "Töröltük a jelenetet.\nA legközelebbi kereséskor már nem találod.", toastLength: Toast.LENGTH_LONG );
+
+                                });
+                              }
+
+                            });
+                          },
+                          child:  Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
+                            child: Row(
+                              children: [
+                                Text(
+                                  videoRepo.videosData!=null && videoRepo.videosData.value!=null && videoRepo.videosData.value.videos!=null
+                            && videoRepo.homeCon!=null && videoRepo.homeCon.value!=null && videoRepo.homeCon.value.swiperIndex!=null&& videoRepo.videosData.value.videos.length>videoRepo.homeCon.value.swiperIndex?videoRepo.videosData.value.videos[videoRepo.homeCon.value.swiperIndex].videoId.toString():""
+                          ,style:TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: 10,),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     )
                   ],
@@ -1169,7 +1205,12 @@ String mSelectedProfile;
       ),
     );
   }
-
+ /* void exitFullScreen() {
+    html.document.exitFullscreen();
+  }
+  void goFullScreen() {
+    html.document.documentElement.requestFullscreen();
+  }*/
   Widget buildArrowNavigation(bool next) {
     return Positioned(
       left:0,
@@ -1249,6 +1290,7 @@ String mSelectedProfile;
 
             ),
           ),
+
         ],
       ),
     );
@@ -1341,6 +1383,35 @@ String mSelectedProfile;
       )
     );
   }
+  /*Widget buildFullScreenButton() {
+    return Positioned(
+      top:10,
+      right: 0,
+      child: InkWell(
+        onTap: () async {
+          if (!isFullScreen) {
+            setState(() {isFullScreen = true;});
+            goFullScreen();
+          } else {
+            exitFullScreen();
+            setState(() {isFullScreen = false;});
+          }
+        },
+        child: Row(
+          children: [
+            isFullScreen?Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.fullscreen_exit,  size: 20.0, color: Colors.white),
+            ):Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.fullscreen,  size: 20.0, color: Colors.white),
+            )
+          ],
+        ),
+      )
+    );
+  }*/
+
 
 
   Future<bool> deleteVideo(String deletableId, [String defaultFilter])  async {
@@ -1483,9 +1554,14 @@ String mSelectedProfile;
 
 
   }
-  String linkVideos()  {
+  Future<String> linkVideos()  async {
 
-    String ids = "?v=";
+    String p = await SharedPreferencesHelper.getSelectedProfile();
+    String starter = "?v=";
+    if (p=="1"){
+      starter = "?v1=";
+    }
+    String ids = starter;
     if (filteredIds.length ==0 || !mergeSelects.contains(true)) {
       return "";
     }
@@ -1493,7 +1569,7 @@ String mSelectedProfile;
 
       for (int i =0; i< filteredIds.length;i++){
         if (mergeSelects[i]){
-          if (ids!="?v="){
+          if (ids!=starter){
             ids+=",";
           }
           ids+=filteredIds[i];
@@ -1568,7 +1644,8 @@ String mSelectedProfile;
                       children: [
                         InkWell(
                           onTap: () async {
-                            Clipboard.setData(ClipboardData(text: "https://app.backrec.eu/"+linkVideos()));
+                            String lin = await linkVideos();
+                            Clipboard.setData(ClipboardData(text: "https://app.backrec.eu/"+lin));
 
                             Fluttertoast.showToast(msg: "A kijelölt jelenetek linkjét a vágólapra helyeztük.", toastLength: Toast.LENGTH_LONG );
 
@@ -1585,8 +1662,8 @@ String mSelectedProfile;
                         SizedBox(width: 60,),
                         InkWell(
                           onTap: () async {
-
-                            String path = await createQrPicture("https://app.backrec.eu/"+linkVideos());
+                            String lin = await linkVideos();
+                            String path = await createQrPicture("https://app.backrec.eu/"+lin);
                             try {
                               await Share.shareFiles(
                                   [path],
@@ -2139,7 +2216,7 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
   List<String> filterNames = <String>[];
   List<String> filterTeams = <String>[];
   List<String> filterTipusok = <String>[];
-   String  quality = 'SD_540p';
+   String  quality = 'HD_720p';
    String  _rangeStart = '';
    String  _rangeEnd = '';
    String  editedname = 'Válogatás';
@@ -2270,7 +2347,7 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
                           margin: EdgeInsets.only(left: 0, right: 10, top: 6, bottom: 0 ),
                           alignment: Alignment.bottomLeft,
                           child: Container(
-                            height: 0,
+                            height: 35,
                             decoration: BoxDecoration(
                               shape: BoxShape.rectangle,
                               borderRadius: BorderRadius.circular(4.0),

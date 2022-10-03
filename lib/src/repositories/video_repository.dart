@@ -175,14 +175,21 @@ String meccsNameWithoutTime(String m){
   return m;
 }
 Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerElem> myPlayers,VoidCallback callBackForFilteredLength, String selProfile, [String defaultFilter])  async {
-  log('GETVIDEOS filterElem1');
+  print('GETVIDEOS filterElem1');
   if (filterElem!=null) {
-    log('GETVIDEOS filterElem : ' );
+    print('GETVIDEOS filterElem : ' );
   }
   try {
-    log('get lastVideosResponse1 selProfile: '+selProfile==null?"null":"nem null");
+    List<String> deepIds = await SharedPreferencesHelper.getDeepLinkIds();
+    // await SharedPreferencesHelper.setDeepLinkIds(<String>[]);
+    print('torolveeeee: ' );
+    String deepProfile = "";
+    if (deepIds!=null && deepIds.length != 0){
+      deepProfile =  await SharedPreferencesHelper.getDeepLinkProfile();
+    }
+    print('get lastVideosResponse1 selProfile: '+selProfile==null?"null":"nem null");
     String lastVideosResponse =  await SharedPreferencesHelper.getLastVideosResponse();
-    log('get lastVideosResponse2: '+lastVideosResponse);
+    print('get lastVideosResponse2: '+lastVideosResponse);
     var response = null;
     if (lastVideosResponse==null ||lastVideosResponse=='') {
       var headers = {
@@ -190,19 +197,34 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
       };
       if (selProfile!=null&&(selProfile.contains("FKCS2008")||selProfile=='playersszereda')) {
-        log('200 selProfile nem null: ' +selProfile);
+        print('200 selProfile nem null: ' +selProfile);
         headers = {
           'Accept': 'application/json',
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImV4cCI6MTY5Mjc2OTAwMiwiaWF0IjoxNjYxMjMzMDAyfQ.5PCJFMXlCnZRvJnNkEpxEI_1Cks2kRDGbiR5KCdEOXc'
         };
       }
+      if (deepProfile!=null&&deepProfile!="") {
+        if (deepProfile=="0") {
+          print('200 deepProfile nem null: ' + deepProfile);
+          headers = {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImV4cCI6MTY5Mjc2OTAwMiwiaWF0IjoxNjYxMjMzMDAyfQ.5PCJFMXlCnZRvJnNkEpxEI_1Cks2kRDGbiR5KCdEOXc'
+          };
+        } else if (deepProfile=="1") {
+          print('200 deepProfile nem null: ' + deepProfile);
+          headers = {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
+          };
+        }
+      }
       var url =
           "https://api.backrec.eu" +
-              "/videos?start=2022-08-29&end=2022-09-04";//2021-02-02&end=2025-12-31
+              "/videos?start=2021-02-02&end=2025-12-31";//2021-02-02&end=2025-12-31
       if (filterElem!=null && filterElem.start_date!=null && filterElem.start_date!="" && filterElem.end_date!=null && filterElem.end_date!=""){
         url =
             "https://api.backrec.eu" +
-                "/videos?start=2022-08-29&end=2022-09-04";//+filterElem.start_date+"&end="+filterElem.end_date;
+                "/videos?start="+filterElem.start_date+"&end="+filterElem.end_date;//+filterElem.start_date+"&end="+filterElem.end_date;
       }
       if (filterElem != null && filterElem.csapatok != null &&
           filterElem.csapatok.length > 0) {
@@ -260,20 +282,20 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
         //   url+=pref;
         // }
       }
-      log('vegso url: '+url);
+      print('vegso url: '+url);
       response = await http.get(url, headers: headers)
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 60));
     } else{
 
       await Future.delayed(Duration(milliseconds: 200));
 
     }
     if ((response!=null && response.statusCode == 200)|| (lastVideosResponse!=null &&lastVideosResponse!='') ) {
-      List<String> deepIds = await SharedPreferencesHelper.getDeepLinkIds();
-      log('200 BR videos ' +deepIds.toString());
+
+      print('200 BR videos ' +deepIds.toString());
       var responseJson;
       if (response!=null &&  response.statusCode == 200) {
-        log('setlastvideos meghivodik');
+        print('setlastvideos meghivodik');
         await SharedPreferencesHelper.setLastVideosResponse(response.body);
         responseJson = json.decode(response.body);
       } else {
@@ -288,7 +310,7 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
       String recentMeccsekString = "";
       String meccsLast = "-";
 
-      log('NYOMOZ  1' );
+      print('NYOMOZ  1' );
       if (listOfVideosTmp.payload.videos.length > 0) {
         VideoItemElem videoElemLast = listOfVideosTmp.payload.videos[listOfVideosTmp.payload.videos.length-1];
         log('NYOMOZ  1 videoElemLast.name:' +videoElemLast.name);
@@ -298,7 +320,7 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
           meccsLast =videoElemLast.name.split("-")[0]+"_"+ splitArray[splitArray.length-1].substring(0,splitArray[splitArray.length-1].lastIndexOf("."));
         }
       }
-      log ('NYOMOZ  2 ' +listOfVideosTmp.payload.videos.length.toString());
+      print ('NYOMOZ  2 ' +listOfVideosTmp.payload.videos.length.toString());
 
        if (defaultFilter=="last_match" && meccsLast!="-") {
         List<String> meccsFilterForDefault = <String>[];
@@ -325,7 +347,7 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
       //SD 540p
       //SD 360p
       //SD 240p
-      String qualitySelected =  await prefs.getString("quality") ?? "SD_540p";
+      String qualitySelected =  await prefs.getString("quality") ?? "HD_720p";
       // print('NYOMOZ  222  '+qualitySelected);
       // print('NYOMOZ  2221  '+listOfVideosTmp.toString());
       // print('NYOMOZ  22211  '+listOfVideosTmp.payload.toString());

@@ -104,8 +104,10 @@ class SplashScreenController extends ControllerMVC {
 
       });
       if (myPlayers!=null) {
+        print('SPLASHHHHHHHHHHHHHHHHHHHHHH getVideos players');
         await videoRepo.homeCon.value.getVideos(myPlayers: myPlayers, selProfile:prefForSelProfil );
       } else {
+        print('SPLASHHHHHHHHHHHHHHHHHHHHHH getVideos no players');
         await videoRepo.homeCon.value.getVideos( selProfile:prefForSelProfil);
       }
       print('SPLASHHHHHHHHHHHHHHHHHHHHHHgetvideos2');

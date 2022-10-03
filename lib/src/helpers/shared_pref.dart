@@ -21,6 +21,8 @@ class SharedPreferencesHelper {
   static final String _kVideoMap = "videoMap";
   static final String _kFilterMatches = "filtermatches";
   static final String _kDeepLinkIds = "deeplinkids";
+  static final String _kDeepLink = "deeplink";
+  static final String _kDeepLinkProfile = "deeplinkprofile";
   static final String _kFilterNames = "filternames";
   static final String _kFilterTeams = "filterteams";
   static final String _kFilteredIds = "filteredids";
@@ -58,6 +60,20 @@ class SharedPreferencesHelper {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     return prefs.setString(_kLastScreen, value);
+  }
+  static Future<String> getDeepLinkProfile() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.getString(_kDeepLinkProfile) ?? '';
+  }
+
+  /// ----------------------------------------------------------
+  /// Method that saves the user decision on sorting order
+  /// ----------------------------------------------------------
+  static Future<bool> setDeepLinkProfile(String value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.setString(_kDeepLinkProfile, value);
   }
 
   /// ------------------------------------------------------------
@@ -123,7 +139,7 @@ class SharedPreferencesHelper {
   static Future<String> getQuality() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    return prefs.getString(_kQuality) ?? 'SD_540p';
+    return prefs.getString(_kQuality) ?? 'HD_720p';
   }
   static Future<bool> setQuality(String value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -154,6 +170,16 @@ class SharedPreferencesHelper {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     return prefs.getString(_kSelectedProfile) ?? '-1';
+  }
+  static Future<bool> setDeepLink(String value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.setString(_kDeepLink, value);
+  }
+  static Future<String> getDeepLink() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.getString(_kDeepLink) ?? "";
   }
   static Future<bool> setRangeEnd(String value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -245,7 +271,7 @@ class SharedPreferencesHelper {
   }
   static Future< List<String>> getDeepLinkIds() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> l = prefs.getStringList(_kDeepLinkIds) ?? <String>[];
+    List<String> l = await prefs.getStringList(_kDeepLinkIds) ?? <String>[];
     return l;
 
   }
@@ -253,7 +279,7 @@ class SharedPreferencesHelper {
   static Future<bool> setDeepLinkIds( List<String> value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    return prefs.setStringList(_kDeepLinkIds, value);
+    return await prefs.setStringList(_kDeepLinkIds, value);
   }
   static Future< List<String>> getFilterNames() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();

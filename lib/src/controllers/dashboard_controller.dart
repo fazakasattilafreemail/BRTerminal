@@ -301,7 +301,7 @@ class DashboardController extends ControllerMVC {
         obj['videoId'] = userVideoObj.value['videoId'];
       }
     }
-    log("getvideossssssssss1 original");
+    print("getvideossssssssss1 original");
     videoRepo.getVideos(page, myfilter, myPlayers,null, selProfile, "last_match" ).then((data1) async {
       if (data1.videos != null) {
         if (data1.videos.length > 0) {
@@ -343,7 +343,7 @@ class DashboardController extends ControllerMVC {
         obj['videoId'] = userVideoObj.value['videoId'];
       }
     }
-    log("getvideossssssssss2 getVideosByFilter ");
+    print("getvideossssssssss2 getVideosByFilter ");
 
     videoRepo.getVideos(page, myfilter, myPlayers , callBackForFilteredLength, selProfile).then((data1) async {
       if (data1.videos != null) {
@@ -408,7 +408,7 @@ class DashboardController extends ControllerMVC {
       }
     }
     page = page + 1;
-    log("getvideossssssssss3 listenForMoreVideos");
+    print("getvideossssssssss3 listenForMoreVideos");
 
     videoRepo.getVideos(page, myfilter, myPlayers, null, selP).whenComplete(() {
       loadMoreUpdateView.value = true;
