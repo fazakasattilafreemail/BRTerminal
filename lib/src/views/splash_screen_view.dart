@@ -41,6 +41,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
 
       if (deepList !=null) {
         try {
+          linkController.text= deepList;
           String _link = deepList;
           if (_link.contains("?v=")) {
             _link = _link.split("?v=")[1];
@@ -130,7 +131,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
           });
         }).onError((error, stackTrace) {
           isAlreadyTapped = false;
-          Fluttertoast.showToast(msg: "Hupsz..valamiért nem sikerül!");
+          Fluttertoast.showToast(msg: "Hupsz..valamiért nem sikerült!");
         });
       });
     } catch (e) {
@@ -139,7 +140,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
       Fluttertoast.showToast(msg: "Hupsz..valami hiba történt!");
     }
   }
-
+  final linkController = TextEditingController();
   bool isAlreadyTapped = false;
   DateTime currentBackPressTime;
 
@@ -158,90 +159,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
         return Future.value(true);
       },
-      child: isDeepLink=='true'?Material(
-        child: Container(
-          color:Colors.black,
-          child: Stack(
-            children: <Widget>[
-              Container(
-
-
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  image: DecorationImage(
-                    image: AssetImage(
-                      "assets/images/splash.png",
-                    ),
-                    fit: BoxFit.scaleDown,
-                  ),
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    InkWell(
-                      onTap: () async {
-
-                        if (!isAlreadyTapped) {
-                          loadData('playersszereda');
-                        }
-                        setState(() {
-                          isAlreadyTapped = true;
-                        });
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
-                        alignment: Alignment.center,
-                        child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.circular(15.0),
-                              color:  Colors.red.withOpacity(0.4),
-                            ),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Lejátszás a linkről",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-
-                        ),
-                      ),
-                    ),
-
-                  ],
-                ),
-              ),
-              isAlreadyTapped?Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  margin: EdgeInsets.only(bottom: 50),
-                  width: 40,
-                  height: 40,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
-              ):Container()
-            ],
-          ),
-        ),
-      ):isDeepLink=='false'?
+      child: isDeepLink!=''?
       Material(
         child: Container(
           color:Colors.black,
@@ -352,6 +270,166 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                         ),
                       ),
                     ),
+                    Container(
+                      height: 40,
+                      margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
+                      child: Row(
+                        children: [
+                        Container(
+                          height: 40,
+                          width:  MediaQuery.of(context).size.width-80,
+                          // margin: EdgeInsets.only(left: 40,right: 40),
+                          child: Row(
+                            children: [
+                              Container(
+                                height: 40,
+                                child: InkWell(
+                                          onTap: () async {
+
+                                            if (isDeepLink=="true") {
+                                              if (!isAlreadyTapped) {
+                                                loadData('playersszereda');
+                                              }
+                                              setState(() {
+                                                isAlreadyTapped = true;
+                                              });
+                                            }
+                                          },
+                                          child: Container(
+                                            alignment: Alignment.bottomLeft,
+                                            child: DecoratedBox(
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.rectangle,
+                                                  borderRadius: BorderRadius.circular(15.0),
+                                                  color:  Colors.red.withOpacity(0.4),
+                                                ),
+                                                child: Center(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 18),
+                                                    child: Row(
+
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Text(
+                                                          "Lejátszás a linkről",
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.normal,
+                                                            color: isDeepLink!="true"?Colors.white.withOpacity(0.4):Colors.white,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                )
+
+                                            ),
+                                          ),
+                                        ),
+                              ),
+                            ],
+                          ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Container(
+                      height: 40,
+                      margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
+                      child: Row(
+                        children: [
+                        Container(
+                          height: 40,
+                          width:  MediaQuery.of(context).size.width-80,
+                          // margin: EdgeInsets.only(left: 40,right: 40),
+                          child: Row(
+                            children: [
+
+                              Container(
+                          decoration: BoxDecoration(
+                                          shape: BoxShape.rectangle,
+                                          borderRadius: BorderRadius.circular(15.0),
+                                          color:  Colors.white,
+                                        ),
+                                // height: 40,
+                                width: MediaQuery.of(context).size.width-80,
+                                // color: Colors.white,
+                                child:  TextField(
+                                          controller: linkController,
+                                          style: TextStyle(
+                                            fontSize: 13.0,
+                                            color: Colors.black,
+                                          ),
+                                          onTap: () {
+                                            //_con.scrollToBottom();
+                                          },
+                                          onChanged: (value) {
+                                            // _con.typing();
+                                            // _con.msg = value;
+                                            if (value !=null) {
+                                              try {
+                                                String _link = value;
+                                                if (_link.contains("?v=")) {
+                                                  _link = _link.split("?v=")[1];
+                                                  print('deeplink 000 start');
+                                                  SharedPreferencesHelper.setDeepLinkIds(
+                                                      _link.split(",")).then((value) {
+                                                    SharedPreferencesHelper.setDeepLinkProfile('0').then((value) {
+                                                      setState(() { isDeepLink = 'true';});
+                                                    });
+                                                  });
+
+                                                } else if (_link.contains("?v1=")) {
+                                                  _link = _link.split("?v1=")[1];
+                                                  SharedPreferencesHelper.setDeepLinkIds(
+                                                      _link.split(",")).then((value) {
+                                                    SharedPreferencesHelper.setDeepLinkProfile('1').then((value) {
+                                                      setState(() { isDeepLink = 'true';});
+                                                    });
+                                                  });
+                                                } else {
+                                                  print('deeplink nullazva start');
+                                                  SharedPreferencesHelper.setDeepLinkIds(<String>[]).then((value) {
+                                                    setState(() { isDeepLink = 'false';});
+                                                  });
+                                                  print('deeplink nullazva end');
+                                                }
+
+
+
+                                              }catch(e){
+                                                SharedPreferencesHelper.setDeepLinkIds(<String>[]).then((value) {
+                                                  setState(() { isDeepLink = 'false';});
+                                                });
+                                              }
+
+                                            } else {
+                                              SharedPreferencesHelper.setDeepLinkIds(<String>[]).then((value) {
+                                                setState(() { isDeepLink = 'false';});
+                                              });
+
+
+                                            }
+                                          },
+                                          decoration: InputDecoration(
+                                            hintText: 'paste your link',
+                                            hintStyle: TextStyle(
+                                              fontSize: 13.0,
+                                              color: Colors.grey,
+                                            ),
+                                            contentPadding: EdgeInsets.only(
+                                              left: 10.0,
+                                            ),
+                                            border: InputBorder.none,
+                                          ),
+                                        ),
+                              )
+                            ],
+                          ),
+                          )
+                        ],
+                      ),
+                    ),
+
 
                   ],
                 ),

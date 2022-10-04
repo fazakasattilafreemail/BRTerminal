@@ -28,7 +28,21 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GlobalConfiguration().loadFromAsset("configuration");
   HttpOverrides.global = new MyHttpOverrides();
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: "AIzaSyCsvyAVapj6SYPAQPdaDU0IvHLMl8smJ_E",
+          authDomain: "backrec-48f82.firebaseapp.com",
+          projectId: "backrec-48f82",
+          storageBucket: "backrec-48f82.appspot.com",
+          messagingSenderId: "553305702268",
+          appId: "1:553305702268:web:7f5f32ff4f6a261e4a2ef9",
+          measurementId: "G-K0D5XKRNTS"),
+
+    );
+  } catch (e){
+
+  }
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Material(
       child: Container(

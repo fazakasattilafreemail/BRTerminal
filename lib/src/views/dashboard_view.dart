@@ -63,7 +63,7 @@ class _DashboardWidgetState extends StateMVC<DashboardWidget> with SingleTickerP
   Map<String, dynamic> videoMapFromDbForRead = new Map<String, dynamic>();
   Map<String, dynamic> playersMapFromDbForRead = new Map<String, dynamic>();
   Map<String, dynamic> teamsMapFromDbForRead = new Map<String, dynamic>();
-  Map<String,MyPlayerElem> myPlayers;
+  Map<String,MyPlayerElem> myPlayers=new Map<String, MyPlayerElem>();
   Map<String,String> myTeams;
 String mSelectedProfile;
   Map<String, dynamic> videoMapFromHistory;
@@ -1161,37 +1161,37 @@ String mSelectedProfile;
                           ),
                         ),
 
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              showAdminDialog = false;
-                              if (videoRepo.videosData!=null && videoRepo.videosData.value!=null && videoRepo.videosData.value.videos!=null
-                                  && videoRepo.homeCon!=null && videoRepo.homeCon.value!=null && videoRepo.homeCon.value.swiperIndex!=null&& videoRepo.videosData.value.videos.length>videoRepo.homeCon.value.swiperIndex){
-                                deleteVideo(videoRepo.videosData.value.videos[videoRepo.homeCon.value.swiperIndex].videoId.toString()).then((data1) async {
-                                  Fluttertoast.showToast(msg: "Töröltük a jelenetet.\nA legközelebbi kereséskor már nem találod.", toastLength: Toast.LENGTH_LONG );
-
-                                });
-                              }
-
-                            });
-                          },
-                          child:  Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
-                            child: Row(
-                              children: [
-                                Text(
-                                  videoRepo.videosData!=null && videoRepo.videosData.value!=null && videoRepo.videosData.value.videos!=null
-                            && videoRepo.homeCon!=null && videoRepo.homeCon.value!=null && videoRepo.homeCon.value.swiperIndex!=null&& videoRepo.videosData.value.videos.length>videoRepo.homeCon.value.swiperIndex?videoRepo.videosData.value.videos[videoRepo.homeCon.value.swiperIndex].videoId.toString():""
-                          ,style:TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(width: 10,),
-                              ],
-                            ),
-                          ),
-                        ),
+                        // InkWell(
+                        //   onTap: () {
+                        //     setState(() {
+                        //       showAdminDialog = false;
+                        //       if (videoRepo.videosData!=null && videoRepo.videosData.value!=null && videoRepo.videosData.value.videos!=null
+                        //           && videoRepo.homeCon!=null && videoRepo.homeCon.value!=null && videoRepo.homeCon.value.swiperIndex!=null&& videoRepo.videosData.value.videos.length>videoRepo.homeCon.value.swiperIndex){
+                        //         deleteVideo(videoRepo.videosData.value.videos[videoRepo.homeCon.value.swiperIndex].videoId.toString()).then((data1) async {
+                        //           Fluttertoast.showToast(msg: "Töröltük a jelenetet.\nA legközelebbi kereséskor már nem találod.", toastLength: Toast.LENGTH_LONG );
+                        //
+                        //         });
+                        //       }
+                        //
+                        //     });
+                        //   },
+                        //   child:  Padding(
+                        //     padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
+                        //     child: Row(
+                        //       children: [
+                        //         Text(
+                        //           videoRepo.videosData!=null && videoRepo.videosData.value!=null && videoRepo.videosData.value.videos!=null
+                        //     && videoRepo.homeCon!=null && videoRepo.homeCon.value!=null && videoRepo.homeCon.value.swiperIndex!=null&& videoRepo.videosData.value.videos.length>videoRepo.homeCon.value.swiperIndex?videoRepo.videosData.value.videos[videoRepo.homeCon.value.swiperIndex].videoId.toString():""
+                        //   ,style:TextStyle(
+                        //             fontWeight: FontWeight.normal,
+                        //             color: Colors.white,
+                        //           ),
+                        //         ),
+                        //         SizedBox(width: 10,),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     )
                   ],
@@ -1205,96 +1205,96 @@ String mSelectedProfile;
       ),
     );
   }
- /* void exitFullScreen() {
+  /*void exitFullScreen() {
     html.document.exitFullscreen();
   }
   void goFullScreen() {
     html.document.documentElement.requestFullscreen();
   }*/
-  Widget buildArrowNavigation(bool next) {
-    return Positioned(
-      left:0,
-      right:0,
-      bottom: 0,
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-
-          Container(
-            child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(15.0),
-                  color:  Colors.black87.withOpacity(0.7),
-                ),
-                child: InkWell(
-                    onTap:() {
-                      if (videoRepo.homeCon.value.swiperIndex>0) {
-                      videoRepo.homeCon.value.swipeController.previous(
-                          animation: true);
-                      }
-                    },
-                    child:  Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-                      child: Row(
-                        children: [
-                          // Text(
-                          //   "Előző",
-                          //   style: TextStyle(
-                          //     fontWeight: FontWeiwght.normal,
-                          //     color: Colors.white,
-                          //   ),
-                          // ),
-                          Icon(Icons.arrow_circle_down_outlined , size: 50.0, color: Colors.white)
-                        ],
-                      ),
-                    )
-                )
-
-            ),
-          ),
-
-          SizedBox(width: 20,),
-          Container(
-            child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(15.0),
-                  color:  Colors.black87.withOpacity(0.7),
-                ),
-                child: InkWell(
-                    onTap:() {
-                      if (videoRepo.homeCon.value.swiperIndex<(filteredIds.length-1)) {
-                        videoRepo.homeCon.value.swipeController.next(
-                            animation: true);
-                      }
-                    },
-                    child:  Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-                      child: Row(
-                        children: [
-                          // Text(
-                          //   "Következő",
-                          //   style: TextStyle(
-                          //     fontWeight: FontWeight.normal,
-                          //     color: Colors.white,
-                          //   ),
-                          // ),
-                          Icon(Icons.arrow_circle_up_outlined , size: 50.0, color: Colors.white)
-
-                        ],
-                      ),
-                    )
-                )
-
-            ),
-          ),
-
-        ],
-      ),
-    );
-  }
+  // Widget buildArrowNavigation(bool next) {
+  //   return Positioned(
+  //     left:0,
+  //     right:0,
+  //     bottom: 0,
+  //     child: Row(
+  //       mainAxisSize: MainAxisSize.max,
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //
+  //         Container(
+  //           child: DecoratedBox(
+  //               decoration: BoxDecoration(
+  //                 shape: BoxShape.rectangle,
+  //                 borderRadius: BorderRadius.circular(15.0),
+  //                 color:  Colors.black87.withOpacity(0.7),
+  //               ),
+  //               child: InkWell(
+  //                   onTap:() {
+  //                     if (videoRepo.homeCon.value.swiperIndex>0) {
+  //                     videoRepo.homeCon.value.swipeController.previous(
+  //                         animation: true);
+  //                     }
+  //                   },
+  //                   child:  Padding(
+  //                     padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+  //                     child: Row(
+  //                       children: [
+  //                         // Text(
+  //                         //   "Előző",
+  //                         //   style: TextStyle(
+  //                         //     fontWeight: FontWeiwght.normal,
+  //                         //     color: Colors.white,
+  //                         //   ),
+  //                         // ),
+  //                         Icon(Icons.arrow_circle_down_outlined , size: 50.0, color: Colors.white)
+  //                       ],
+  //                     ),
+  //                   )
+  //               )
+  //
+  //           ),
+  //         ),
+  //
+  //         SizedBox(width: 20,),
+  //         Container(
+  //           child: DecoratedBox(
+  //               decoration: BoxDecoration(
+  //                 shape: BoxShape.rectangle,
+  //                 borderRadius: BorderRadius.circular(15.0),
+  //                 color:  Colors.black87.withOpacity(0.7),
+  //               ),
+  //               child: InkWell(
+  //                   onTap:() {
+  //                     if (videoRepo.homeCon.value.swiperIndex<(filteredIds.length-1)) {
+  //                       videoRepo.homeCon.value.swipeController.next(
+  //                           animation: true);
+  //                     }
+  //                   },
+  //                   child:  Padding(
+  //                     padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+  //                     child: Row(
+  //                       children: [
+  //                         // Text(
+  //                         //   "Következő",
+  //                         //   style: TextStyle(
+  //                         //     fontWeight: FontWeight.normal,
+  //                         //     color: Colors.white,
+  //                         //   ),
+  //                         // ),
+  //                         Icon(Icons.arrow_circle_up_outlined , size: 50.0, color: Colors.white)
+  //
+  //                       ],
+  //                     ),
+  //                   )
+  //               )
+  //
+  //           ),
+  //         ),
+  //
+  //       ],
+  //     ),
+  //   );
+  // }
 
   TextEditingController _textFieldController = new TextEditingController();
   String valuePIN = "";
@@ -1383,34 +1383,34 @@ String mSelectedProfile;
       )
     );
   }
-  /*Widget buildFullScreenButton() {
-    return Positioned(
-      top:10,
-      right: 0,
-      child: InkWell(
-        onTap: () async {
-          if (!isFullScreen) {
-            setState(() {isFullScreen = true;});
-            goFullScreen();
-          } else {
-            exitFullScreen();
-            setState(() {isFullScreen = false;});
-          }
-        },
-        child: Row(
-          children: [
-            isFullScreen?Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.fullscreen_exit,  size: 20.0, color: Colors.white),
-            ):Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.fullscreen,  size: 20.0, color: Colors.white),
-            )
-          ],
-        ),
-      )
-    );
-  }*/
+  // Widget buildFullScreenButton() {
+  //   return Positioned(
+  //     top:10,
+  //     right: 0,
+  //     child: InkWell(
+  //       onTap: () async {
+  //         if (!isFullScreen) {
+  //           setState(() {isFullScreen = true;});
+  //           goFullScreen();
+  //         } else {
+  //           exitFullScreen();
+  //           setState(() {isFullScreen = false;});
+  //         }
+  //       },
+  //       child: Row(
+  //         children: [
+  //           isFullScreen?Padding(
+  //             padding: const EdgeInsets.all(8.0),
+  //             child: Icon(Icons.fullscreen_exit,  size: 20.0, color: Colors.white),
+  //           ):Padding(
+  //             padding: const EdgeInsets.all(8.0),
+  //             child: Icon(Icons.fullscreen,  size: 20.0, color: Colors.white),
+  //           )
+  //         ],
+  //       ),
+  //     )
+  //   );
+  // }
 
 
 
