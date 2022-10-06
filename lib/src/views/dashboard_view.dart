@@ -124,12 +124,28 @@ String mSelectedProfile;
 
   }
 
+  bool isDeep = false;
   @override
   void initState() {
     SystemChrome.setEnabledSystemUIOverlays([]);
     print(' dashboard view initState');
     Wakelock.enable();
+    SharedPreferencesHelper.getDeepLink().then((value) {
+      if (value!=null && value!=""){
+        setState(() {
+          isDeep = true;
+        });
+      } else {
 
+        SharedPreferencesHelper.getDeepLinkIds().then((value) {
+          if (value!=null && value.length>0){
+            setState(() {
+              isDeep = true;
+            });
+          }
+        });
+      }
+    });
     // print ('MEMORIA ADATOK::::::');
     // print(SysInfo.getTotalPhysicalMemory());
     // print(SysInfo.getFreePhysicalMemory());
@@ -719,8 +735,8 @@ String mSelectedProfile;
                       children: [
                         Icon(
                           Icons.search_rounded,
-                          color: Colors.white,
-                          size: 50,
+                          color: isDeep?Colors.transparent:Colors.white,
+                          size: isDeep?0:50,
                         ),
                         Positioned(bottom:10,right:4,child: Text(
                           (videoRepo.homeCon.value.swiperIndex+1).toString()+"/"+filteredIds.length.toString(),
@@ -755,8 +771,9 @@ String mSelectedProfile;
                       //     searchStart();
                       //   }
                       // });
-                      searchStart();//gernyeszeghez
-
+                      if (!isDeep) {
+                        searchStart(); //gernyeszeghez
+                      }
 
                     }
                 ),
@@ -767,7 +784,7 @@ String mSelectedProfile;
               child:
               Container(
                 margin:EdgeInsets.only(top: 35, right: 80),
-                height: 48.0,
+                height: isDeep?0:48.0,
                 child: Text(
                   /*"More videos: "*/"",
                   style: TextStyle(
@@ -1127,7 +1144,7 @@ String mSelectedProfile;
                             child: Row(
                               children: [
                                 Text(
-                                  "Összefoglaló/Megosztás",
+                                  "Share/Átnevezés",
                                   style: TextStyle(
                                     fontWeight: FontWeight.normal,
                                     color: Colors.white,
@@ -1205,12 +1222,12 @@ String mSelectedProfile;
       ),
     );
   }
-  /*void exitFullScreen() {
-    html.document.exitFullscreen();
-  }
-  void goFullScreen() {
-    html.document.documentElement.requestFullscreen();
-  }*/
+  // void exitFullScreen() {
+  //   html.document.exitFullscreen();
+  // }
+  // void goFullScreen() {
+  //   html.document.documentElement.requestFullscreen();
+  // }
   // Widget buildArrowNavigation(bool next) {
   //   return Positioned(
   //     left:0,
@@ -1378,7 +1395,7 @@ String mSelectedProfile;
         },
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Icon(Icons.more_vert_rounded,  size: 20.0, color: Colors.white),
+          child: Icon(Icons.more_vert_rounded,  size: isDeep?0:20.0, color: Colors.white),
         ),
       )
     );
@@ -1554,6 +1571,94 @@ String mSelectedProfile;
 
 
   }
+  Future<bool> renameTeamsVideo(String renameNev, [String defaultFilter])  async {
+
+    if (filteredIds.length ==0 || !mergeSelects.contains(true)) {
+      return false;
+    }
+    try {
+
+      List<dynamic  > idsA = <dynamic>[];
+      String ids = "";
+      for (int i =0; i< filteredIds.length;i++){
+        if (mergeSelects[i]){
+          if (ids!=""){
+            ids+=",";
+          }
+          ids+=filteredIds[i];
+          idsA.add(filteredIds[i]);
+        }
+      }
+      ids+="";
+      log('200 mSelectedProfile3 ' +mSelectedProfile);
+
+      var headers = {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
+
+      };
+      if (mSelectedProfile!=null  && (mSelectedProfile.contains("FKCS2008")||mSelectedProfile=='playersszereda')){
+        headers = {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImV4cCI6MTY5Mjc2OTAwMiwiaWF0IjoxNjYxMjMzMDAyfQ.5PCJFMXlCnZRvJnNkEpxEI_1Cks2kRDGbiR5KCdEOXc'
+
+        };
+      }
+      // var jsonB = {
+      // 'ids': encondeToJson(idsA),
+      // 'name': 'highlight'
+      // };
+      // String name =  DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())+"m";
+      // name = name.replaceAll(":", "h ");
+      // // name = name.replaceAll(" - ", " ");
+      // name = renameNev+"  " +name;
+      log('merge ids:'+ids);
+      var body =  {
+        'ids': ids,
+        'name': renameNev
+      };
+
+      // MergeBodyElem mergeBodyElem = new MergeBodyElem(ids: idsA, name: 'valogatott');
+      // var body = jsonEncode({
+      //   'ids': json.encode(ids),
+      //   'name': 'highlight'
+      //
+      // });
+      // String sbody = "{'ids':"+ids+",'name' : 'Válogatás'}";
+      // var body = json.encode( sbody);
+      // // var body = "{\"ids\":"+ids+",\"name\" : \"Válogatás\"}";
+      print('body :::'+body.toString());
+      var url =
+          "https://api.backrec.eu"+"/video/bulk-update-names";
+      var response = await http.post(url, headers: headers, body: body)
+          .timeout(const Duration(seconds: 60));
+      print('111111 http.atnevez ' + response.statusCode.toString());
+      if (response.statusCode == 200) {
+
+        return true;
+      } else {
+        print('333333 BR videos ' + response.statusCode.toString());
+        throw Exception(response.statusCode.toString()+'<statuscode');
+      }
+    } on TimeoutException catch (_) {
+      print('Timeout??? ');
+      throw Exception('Timeout');
+      // A timeout occurred.
+    } on Exception catch (_) {
+      print('Exception?????'+_.toString());
+      throw Exception(_.toString());
+      // A timeout occurred.
+    } catch (exception){
+      print('SEVERHIBAAA');
+      print('SEVERHIBAAA:'+exception.toString());
+      throw Exception(exception.toString());
+    }
+
+
+    return false;
+
+
+  }
   Future<String> linkVideos()  async {
 
     String p = await SharedPreferencesHelper.getSelectedProfile();
@@ -1630,15 +1735,15 @@ String mSelectedProfile;
                           ],
                         ),
                       ),
-                    ),
+                    ),/*
                     Text(
                       "Megoszthatod a kiválasztott listát.\nVagy készíthetsz összefoglalót belőle.",
                       style: TextStyle(
                         fontWeight: FontWeight.normal,
                         color: Colors.white,
                       ),
-                    ),
-                    SizedBox(height: 20,),
+                    ),*/
+                    SizedBox(height: 5,),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -1711,6 +1816,55 @@ String mSelectedProfile;
                           },
                           child: Text(
                             "Összefoglaló",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 60,),
+                        InkWell(
+                          onTap: () {
+                            Fluttertoast.showToast(msg: "Kijelölt videók átnevezés folyamatban...", toastLength: Toast.LENGTH_LONG );
+
+                            String renamenev = "";
+                            try{
+                              if (editednameController!=null && editednameController.text!=null && editednameController.text!=""){
+                                renamenev = editednameController.text;
+                              }else {
+                                // renamenev = "csapat1-csapat2";
+                              }
+                            } catch (e){
+
+                            }
+                            renamenev = renamenev.replaceAll(" ", "");
+                            renamenev = renamenev.replaceAll("\_", "");
+                            renamenev =  renamenev.replaceAll("\.", "");
+                            renamenev =  renamenev.replaceAll("\,", "");
+                            renamenev =  renamenev.replaceAll("\!", "");
+                            renamenev =  renamenev.replaceAll("\'", "");
+                            renamenev =  renamenev.replaceAll("\`", "");
+                            renamenev =  renamenev.replaceAll("\;", "");
+                            renamenev =  renamenev.replaceAll("\(", "");
+                            renamenev =  renamenev.replaceAll("\)", "");
+                            renamenev =  renamenev.replaceAll("\/", "");
+                            renamenev =  renamenev.replaceAll("\\", "");
+                            renamenev =  renamenev.replaceAll("\:", "");
+                            if (!renamenev.contains("-")||renamenev.indexOf("-")!=renamenev.lastIndexOf("-")||renamenev.indexOf("-")==0||renamenev.indexOf("-")==renamenev.length-1){
+                              Fluttertoast.showToast(msg: "Nem megfelelő formátum! Jó példák: Csapat1-Csapat2; Csapat1-januar2", toastLength: Toast.LENGTH_LONG );
+                            } else {
+                              renameTeamsVideo(renamenev).then((value) {
+                                Fluttertoast.showToast(msg: "Átneveztük: "+renamenev, toastLength: Toast.LENGTH_LONG );
+                                setState(() { showMergeDialog = false;
+                                SharedPreferencesHelper.setShowMerge(false);
+                                mergeSelects = List.filled(filteredIds.length, true); });
+
+                              });
+                            }
+
+                          },
+                          child: Text(
+                            "Átnevez",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -5175,7 +5329,11 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
       var body = {
         'name': newName,
       };
-
+    //   {
+    //     "ids": "7251",
+    // "name": "csics"
+    // }
+//https://api.backrec.eu/video/bulk-update-names
       var url =
           "https://api.backrec.eu"+"/video/"+renamableId.toString();
       print('111111 url ' + url);

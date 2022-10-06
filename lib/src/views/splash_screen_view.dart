@@ -30,6 +30,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
     this.deepList = deepList;
   }
   String isDeepLink = "";
+  String deepProfile = 'playersszereda';
   Future<Null> getSharedPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     print('deeplink lekerdez splashben start');
@@ -49,7 +50,10 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
             SharedPreferencesHelper.setDeepLinkIds(
                 _link.split(",")).then((value) {
               SharedPreferencesHelper.setDeepLinkProfile('0').then((value) {
-                setState(() { isDeepLink = 'true';});
+                setState(() {
+                  isDeepLink = 'true';
+                  deepProfile = 'playersszereda';
+                });
               });
             });
 
@@ -58,7 +62,9 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
             SharedPreferencesHelper.setDeepLinkIds(
                 _link.split(",")).then((value) {
               SharedPreferencesHelper.setDeepLinkProfile('1').then((value) {
-                setState(() { isDeepLink = 'true';});
+                setState(() {
+                  isDeepLink = 'true';
+                deepProfile = '1';});
               });
             });
           } else {
@@ -213,7 +219,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      "FK CSíkszereda / Nyárádszereda / Ballon",
+                                      "FK CSíkszereda / Nyárádszereda",
                                       style: TextStyle(
                                         fontWeight: FontWeight.normal,
                                         color: Colors.white,
@@ -288,7 +294,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
 
                                             if (isDeepLink=="true") {
                                               if (!isAlreadyTapped) {
-                                                loadData('playersszereda');
+                                                loadData(deepProfile);
                                               }
                                               setState(() {
                                                 isAlreadyTapped = true;
@@ -374,7 +380,10 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                                                   SharedPreferencesHelper.setDeepLinkIds(
                                                       _link.split(",")).then((value) {
                                                     SharedPreferencesHelper.setDeepLinkProfile('0').then((value) {
-                                                      setState(() { isDeepLink = 'true';});
+                                                      setState(() {
+                                                        isDeepLink = 'true';
+                                                        deepProfile = 'playersszereda';
+                                                      });
                                                     });
                                                   });
 
@@ -383,7 +392,8 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                                                   SharedPreferencesHelper.setDeepLinkIds(
                                                       _link.split(",")).then((value) {
                                                     SharedPreferencesHelper.setDeepLinkProfile('1').then((value) {
-                                                      setState(() { isDeepLink = 'true';});
+                                                      setState(() { isDeepLink = 'true';
+                                                      deepProfile = '1';});
                                                     });
                                                   });
                                                 } else {
