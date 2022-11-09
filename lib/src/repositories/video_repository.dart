@@ -174,7 +174,7 @@ String meccsNameWithoutTime(String m){
   }
   return m;
 }
-Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerElem> myPlayers,VoidCallback callBackForFilteredLength, String selProfile, [String defaultFilter])  async {
+Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerElem> myPlayers,VoidCallback callBackForFilteredLength, String selProfile, [String defaultFilter, String tokenFromDb])  async {
   print('GETVIDEOS filterElem1');
   if (filterElem!=null) {
     print('GETVIDEOS filterElem : ' );
@@ -190,11 +190,12 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
     print('get lastVideosResponse1 selProfile: '+selProfile==null?"null":"nem null");
     String lastVideosResponse =  await SharedPreferencesHelper.getLastVideosResponse();
     print('get lastVideosResponse2: '+lastVideosResponse);
+    print('get tokenFromDbtokenFromDb: '+tokenFromDb);
     var response = null;
     if (lastVideosResponse==null ||lastVideosResponse=='') {
       var headers = {
         'Accept': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
+        'Authorization': tokenFromDb/*'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'*/
       };
       if (selProfile!=null&&(selProfile.contains("FKCS2008")||selProfile=='playersszereda')) {
         print('200 selProfile nem null: ' +selProfile);
@@ -210,11 +211,11 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
             'Accept': 'application/json',
             'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImV4cCI6MTY5Mjc2OTAwMiwiaWF0IjoxNjYxMjMzMDAyfQ.5PCJFMXlCnZRvJnNkEpxEI_1Cks2kRDGbiR5KCdEOXc'
           };
-        } else if (deepProfile=="1") {
+        } else/* if (deepProfile=="1") */{
           print('200 deepProfile nem null: ' + deepProfile);
           headers = {
             'Accept': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
+            'Authorization': tokenFromDb/*'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'*/
           };
         }
       }

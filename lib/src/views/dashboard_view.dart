@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:dio/dio.dart';
+import 'package:draggable_fab/draggable_fab.dart';
 // import 'dart:html' as html;
 import 'dart:io';
 import 'package:fullscreen/fullscreen.dart';
@@ -68,6 +70,8 @@ class _DashboardWidgetState extends StateMVC<DashboardWidget> with SingleTickerP
 String mSelectedProfile;
   Map<String, dynamic> videoMapFromHistory;
   bool isFullScreen = false;
+  String tokenFromDb = "";
+  String logo1Base64 = "",logo2Base64 = "",logo3Base64 = "",logo4Base64 = "",logo5Base64 = "";
   @override
   void didChangeMetrics() {
     final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
@@ -281,6 +285,16 @@ String mSelectedProfile;
           querySnapshot.docs.forEach((element) {
             setState(() {
               myTeams = new Map<String, String>();
+              tokenFromDb = element['token'] as String;
+              try {
+                logo1Base64 = element['logo2'] as String;
+                logo2Base64 = element['logo2'] as String;
+                logo3Base64 = element['logo2'] as String;
+                logo4Base64 = element['logo2'] as String;
+                logo5Base64 = element['logo2'] as String;
+              }catch (e){
+
+              }
               teamsMapFromDbForRead = element['teams'] as Map;
               teamsMapFromDbForRead.forEach((key, value) {
                 myTeams.putIfAbsent(
@@ -336,6 +350,12 @@ String mSelectedProfile;
 
     super.initState();
   }
+
+  Uint8List convertBase64Image(String base64String) {
+    return Base64Decoder().convert(base64String.split(',').last);
+  }
+
+
   waitForSometime() {
     print("waitForSometime");
     Future.delayed(Duration(seconds: 2));
@@ -655,6 +675,35 @@ String mSelectedProfile;
     }
 
   }
+  final imgUrl = "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4";
+  bool downloading = false;
+  var progressString = "";
+  Future<void> downloadFile() async {
+    Dio dio = Dio();
+
+    try {
+      var dir = await getDownloadsDirectory();
+      print("path ${dir.path}");
+      await dio.download(imgUrl, "${dir.path}/demo.mp4",
+          onReceiveProgress: (rec, total) {
+            print("Rec: $rec , Total: $total");
+
+            setState(() {
+              downloading = true;
+              progressString = ((rec / total) * 100).toStringAsFixed(0) + "%";
+            });
+          });
+    } catch (e) {
+      print(e);
+    }
+
+    setState(() {
+      downloading = false;
+      progressString = "Completed";
+    });
+    print("Download completed");
+  }
+
   Widget build(BuildContext context) {
     print("BottomPAD");
     final viewInsets = EdgeInsets.fromWindowPadding(WidgetsBinding.instance.window.viewInsets, WidgetsBinding.instance.window.devicePixelRatio);
@@ -671,6 +720,7 @@ String mSelectedProfile;
       child: Scaffold(
         // key: _con.scaffoldKey,
         backgroundColor: Colors.black,
+
         body: Stack(
           children: [
             RefreshIndicator(
@@ -724,28 +774,36 @@ String mSelectedProfile;
               alignment: Alignment.bottomRight,
               child:
               Container(
-                margin:EdgeInsets.only(top: 40, right: 15),
-                height: 65.0,
-                width: 65.0,
+                margin:EdgeInsets.only(top: 0, right: 15),
+                // height: 65.0,
                 child:InkWell(
                   child: Container(
-                    height: 65.0,
-                    width: 65.0,
+                    // height: 65.0,
                     child: Stack(
                       children: [
-                        Icon(
-                          Icons.search_rounded,
-                          color: isDeep?Colors.transparent:Colors.white,
-                          size: isDeep?0:50,
-                        ),
-                        Positioned(bottom:10,right:4,child: Text(
-                          (videoRepo.homeCon.value.swiperIndex+1).toString()+"/"+filteredIds.length.toString(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber,
-                            fontSize: 12
+                        Container(
+                          height: isDeep?0:50,
+                          width: 100,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+
+                              "meccsek >>",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 14
+                              ),
+                            ),
                           ),
-                        ))
+                        ),
+                        // Icon(
+                        //   Icons.search_rounded,
+                        //   color: isDeep?Colors.transparent:Colors.white,
+                        //   size: isDeep?0:50,
+                        // ),
+
                       ],
                     ),
                   ),
@@ -779,62 +837,40 @@ String mSelectedProfile;
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child:
-              Container(
-                margin:EdgeInsets.only(top: 35, right: 80),
-                height: isDeep?0:48.0,
-                child: Text(
-                  /*"More videos: "*/"",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 14
-                  ),
-                ),
-              ),
-            ),
-            // Positioned(
-            //   bottom: actualVideo !=null?0:60,
-            //   child: videoRepo.videosData.value.videos!=null && videoRepo.homeCon.value !=null && videoRepo.homeCon.value.swiperIndex!=null&&
-            //   videoRepo.videosData.value.videos.length>videoRepo.homeCon.value.swiperIndex?actualVideo !=null?new VideoDescription(
-            //       actualVideo !=null?actualVideo:videoRepo.videosData.value.videos.elementAt(videoRepo.homeCon.value.swiperIndex),
-            //       videoRepo.homeCon.value.pc3,(editableTag) {
-            //     // print("callbackrekatt videoRepo.homeCon.value.swiperIndex" +videoRepo.homeCon.value.swiperIndex.t);
-            //     // print("callbackrekatt main." +editableTag);
-            //     setState(() {
-            //       // video.videos.elementAt(index).username = "hhh";
-            //       actualVideoElemIdx = videoRepo.homeCon.value.swiperIndex;
-            //     });
-            //
-            //     VideoItemElem vie = videoRepo.videosData.value.videos.elementAt(videoRepo.homeCon.value.swiperIndex).videoElem;
-            //     initDialog(vie!=null?vie.name:"");
-            //     editPlayerAndType(vie, editableTag);
-            //   }
-            //   ):new VideoDescription(
-            //       actualVideo !=null?actualVideo:videoRepo.videosData.value.videos.elementAt(videoRepo.homeCon.value.swiperIndex),
-            //       videoRepo.homeCon.value.pc3,(editableTag) {
-            //     // print("callbackrekatt videoRepo.homeCon.value.swiperIndex" +videoRepo.homeCon.value.swiperIndex.t);
-            //     // print("callbackrekatt main." +editableTag);
-            //     setState(() {
-            //       // video.videos.elementAt(index).username = "hhh";
-            //       actualVideoElemIdx = videoRepo.homeCon.value.swiperIndex;
-            //     });
-            //
-            //     VideoItemElem vie = videoRepo.videosData.value.videos.elementAt(videoRepo.homeCon.value.swiperIndex).videoElem;
-            //     initDialog(vie!=null?vie.name:"");
-            //     editPlayerAndType(vie, editableTag);
-            //   }
-            //   ):Container(),
+            // Align(
+            //   alignment: Alignment.bottomRight,
+            //   child:
+            //   Container(
+            //     margin:EdgeInsets.only(top: 35, right: 80),
+            //     height: isDeep?0:48.0,
+            //     child: Text(
+            //       ""/*""More videos..."*/,
+            //       style: TextStyle(
+            //           fontWeight: FontWeight.bold,
+            //           color: Colors.white,
+            //           fontSize: 14
+            //       ),
+            //     ),
+            //   ),
             // ),
+            Positioned(bottom:5,right:MediaQuery.of(context).size.width/2,child: Text(
+              (videoRepo.homeCon.value.swiperIndex+1).toString()+"/"+filteredIds.length.toString(),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber,
+                  fontSize: 12
+              ),
+            )),
             showMergeDialog?buildMergeDialog():Container(),
             showMergeDialog?buildMergeCheck():Container(),
             showAdminDialog?buildAdminDialog():Container(),
+            // buildSponsorsWidget(true),
             // buildArrowNavigation(true),//web buildhez
             buildAdminMenuButton(),
-            // buildFullScreenButton(),
-      Positioned(
+            // buildFullScreenButton(),//web buildhez
+
+
+             Positioned(
         bottom: 0,
         child:
             videoRepo.videosData.value.videos!=null && videoRepo.homeCon.value !=null && videoRepo.homeCon.value.swiperIndex!=null&&
@@ -939,12 +975,311 @@ String mSelectedProfile;
               setState(() {showNamesDialog = false;});
 
             }):Container(),
+
+            isOpenedFilterWindow||showMergeDialog?Container():Positioned(
+              left : positionLogo1.dx,
+              top  : positionLogo1.dy ,
+                child : Draggable(
+                    feedback: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        borderRadius: BorderRadius.circular(5.0),
+                        border:  Border.all(color: Colors.white),
+                        color: Colors.white.withOpacity(0.0),
+                      ),
+                      child: Container(
+                        width:  MediaQuery.of(context).size.width-(INITXPOS*2),
+                          height: 30,
+                          child : FloatingActionButton(
+                              shape: BeveledRectangleBorder(
+                                  borderRadius: BorderRadius.zero
+                              ),
+                              backgroundColor: Colors.transparent,
+                              child:  DecoratedBox(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.rectangle,
+                                // border:  Border.all(color: Colors.blueAccent),
+                                borderRadius: BorderRadius.circular(5.0),
+                                color: Colors.white.withOpacity(0.0),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  logo1Base64!=""?Image.memory(convertBase64Image(logo1Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                  logo2Base64!=""?Image.memory(convertBase64Image(logo2Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                  logo3Base64!=""?Image.memory(convertBase64Image(logo3Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                  logo4Base64!=""?Image.memory(convertBase64Image(logo4Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                  logo5Base64!=""?Image.memory(convertBase64Image(logo5Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                ],
+                              )))
+                      ),
+                    ),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        // border:  Border.all(color: Colors.red),
+                        // border:  Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(5.0),
+                        color: Colors.white.withOpacity(0.0),
+                      ),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width-(INITXPOS*2),
+
+                        height: 30,
+                        child : FloatingActionButton(
+                            shape: BeveledRectangleBorder(
+                                borderRadius: BorderRadius.zero
+                            ),
+                            backgroundColor: Colors.transparent,
+                            child:  DecoratedBox(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(5.0),
+
+                              color: Colors.white.withOpacity(0.0),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+
+                              children: [
+                                logo1Base64!=""?Image.memory(convertBase64Image(logo1Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                logo2Base64!=""?Image.memory(convertBase64Image(logo2Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                logo3Base64!=""?Image.memory(convertBase64Image(logo3Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                logo4Base64!=""?Image.memory(convertBase64Image(logo4Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                logo5Base64!=""?Image.memory(convertBase64Image(logo5Base64),gaplessPlayback: true):Container(),Container(width: 40,),
+                                // logo4Base64!=""?Image.memory(convertBase64Image(logo4Base64),gaplessPlayback: true):Container(),
+                              ],
+                            ))),
+                      ),
+                    ),
+                    childWhenDragging: Container(),
+                    onDragEnd: (details){
+                      setState(() {
+                        // positionLogo1 = details.offset;
+                        if ( details.offset.dy>0 &&  details.offset.dy< MediaQuery.of(context).size.height-30) {
+                          positionLogo1 = Offset(INITXPOS, details.offset.dy);
+                        } else if (details.offset.dy<0){
+                          positionLogo1 = Offset(INITXPOS, 20.0);
+                        }else {
+                          positionLogo1 = Offset(INITXPOS,  MediaQuery.of(context).size.height-30);
+                        }
+                      });
+                      print(positionLogo1);
+                      print(positionLogo1.dx);
+                      print(positionLogo1.dy);
+                    })
+              // child: FloatingActionButton(
+              //   shape: BeveledRectangleBorder(
+              //       borderRadius: BorderRadius.zero
+              //   ),
+              //   backgroundColor: Colors.transparent,
+              //   onPressed: () {
+              //
+              //   },
+              //   child: Container(
+              //     width: 200,
+              //       height: 45,
+              //       child:
+              //       DecoratedBox(
+              //           decoration: BoxDecoration(
+              //             shape: BoxShape.rectangle,
+              //             borderRadius: BorderRadius.circular(5.0),
+              //             color: Colors.white.withOpacity(1.0),
+              //           ),
+              //           child: logo1Base64!=""?Image.memory(convertBase64Image(logo1Base64),gaplessPlayback: true):Container())),
+              // ),
+            ),
+  /*          DraggableFab(
+              initPosition: Offset( MediaQuery.of(context).size.width, 80),
+              child: FloatingActionButton(
+                shape: BeveledRectangleBorder(
+                    borderRadius: BorderRadius.zero
+                ),
+                backgroundColor: Colors.transparent,
+                onPressed: () {
+
+                },
+                child: Container(
+                  width: 200,
+                    height: 45,
+                    child:
+                    DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(5.0),
+                          color: Colors.white.withOpacity(1.0),
+                        ),
+                        child: logo2Base64!=""?Image.memory(convertBase64Image(logo2Base64),gaplessPlayback: true):Container()
+                    )),
+              ),
+            ),
+
+            DraggableFab(
+              initPosition: Offset( MediaQuery.of(context).size.width, 130),
+              child: FloatingActionButton(
+                shape: BeveledRectangleBorder(
+                    borderRadius: BorderRadius.zero
+                ),
+                backgroundColor: Colors.transparent,
+                onPressed: () {
+
+                },
+                child: Container(
+                  width: 200,
+                    height: 45,
+                    child:
+                    DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(5.0),
+                          color: Colors.white.withOpacity(1.0),
+                        ),
+                        child: logo3Base64!=""?Image.memory(convertBase64Image(logo3Base64),gaplessPlayback: true):Container())),
+              ),
+            ),
+            DraggableFab(
+              initPosition: Offset( MediaQuery.of(context).size.width, 180),
+              child: FloatingActionButton(
+                shape: BeveledRectangleBorder(
+                    borderRadius: BorderRadius.zero
+                ),
+                backgroundColor: Colors.transparent,
+                onPressed: () {
+
+                },
+                child: Container(
+                  width: 200,
+                    height: 45,
+                    child:
+                    DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(5.0),
+                          color: Colors.white.withOpacity(1.0),
+                        ),
+                        child: logo4Base64!=""?Image.memory(convertBase64Image(logo4Base64),gaplessPlayback: true):Container())),
+              ),
+            ),
+
+
+
+            DraggableFab(
+              initPosition: Offset( MediaQuery.of(context).size.width, 230),
+              child: FloatingActionButton(
+                shape: BeveledRectangleBorder(
+                    borderRadius: BorderRadius.zero
+                ),
+                backgroundColor: Colors.transparent,
+                onPressed: () {
+
+                },
+                child: Container(
+                  width: 200,
+                    height: 45,
+                    child:
+                    DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(5.0),
+                          color: Colors.white.withOpacity(1.0),
+                        ),
+                        child: logo5Base64!=""?Image.memory(convertBase64Image(logo5Base64),gaplessPlayback: true):Container())),
+              ),
+            ),*/
+
+
+
           ],
         ),
       ),
     );
   }
+  Widget buildArrowNavigation(bool next) {
+    return Positioned(
+      left:0,
+      right:0,
+      bottom: 0,
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
 
+          Container(
+            child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(15.0),
+                  color:  Colors.black87.withOpacity(0.7),
+                ),
+                child: InkWell(
+                    onTap:() {
+                      if (videoRepo.homeCon.value.swiperIndex>0) {
+                        videoRepo.homeCon.value.swipeController.previous(
+                            animation: true);
+                      }
+                    },
+                    child:  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+                      child: Row(
+                        children: [
+                          // Text(
+                          //   "Előző",
+                          //   style: TextStyle(
+                          //     fontWeight: FontWeiwght.normal,
+                          //     color: Colors.white,
+                          //   ),
+                          // ),
+                          Icon(Icons.arrow_circle_down_outlined , size: 50.0, color: Colors.white)
+                        ],
+                      ),
+                    )
+                )
+
+            ),
+          ),
+
+          SizedBox(width: 20,),
+          Container(
+            child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(15.0),
+                  color:  Colors.black87.withOpacity(0.7),
+                ),
+                child: InkWell(
+                    onTap:() {
+                      if (videoRepo.homeCon.value.swiperIndex<(filteredIds.length-1)) {
+                        videoRepo.homeCon.value.swipeController.next(
+                            animation: true);
+                      }
+                    },
+                    child:  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+                      child: Row(
+                        children: [
+                          // Text(
+                          //   "Következő",
+                          //   style: TextStyle(
+                          //     fontWeight: FontWeight.normal,
+                          //     color: Colors.white,
+                          //   ),
+                          // ),
+                          Icon(Icons.arrow_circle_up_outlined , size: 50.0, color: Colors.white)
+
+                        ],
+                      ),
+                    )
+                )
+
+            ),
+          ),
+
+        ],
+      ),
+    );
+  }
+  static const  double INITXPOS = 100.0;
+  Offset positionLogo1 =Offset(INITXPOS, 20.0);
   Future<void> searchStart() async {
     await SharedPreferencesHelper.setLastVideosResponse('');
     await SharedPreferencesHelper.setDeepLinkIds(<String>[]);
@@ -1129,7 +1464,7 @@ String mSelectedProfile;
                                   });
 
                                 });
-                              }, mSelectedProfile);
+                              }, mSelectedProfile, tokenFromDb);
                               Navigator.of(context).pushReplacementNamed('/redirect-page', arguments: 0);
 
                               return;
@@ -1222,99 +1557,75 @@ String mSelectedProfile;
       ),
     );
   }
-  // void exitFullScreen() {
-  //   html.document.exitFullscreen();
-  // }
-  // void goFullScreen() {
-  //   html.document.documentElement.requestFullscreen();
-  // }
-  // Widget buildArrowNavigation(bool next) {
-  //   return Positioned(
-  //     left:0,
-  //     right:0,
-  //     bottom: 0,
-  //     child: Row(
-  //       mainAxisSize: MainAxisSize.max,
-  //       mainAxisAlignment: MainAxisAlignment.center,
-  //       children: [
-  //
-  //         Container(
-  //           child: DecoratedBox(
-  //               decoration: BoxDecoration(
-  //                 shape: BoxShape.rectangle,
-  //                 borderRadius: BorderRadius.circular(15.0),
-  //                 color:  Colors.black87.withOpacity(0.7),
-  //               ),
-  //               child: InkWell(
-  //                   onTap:() {
-  //                     if (videoRepo.homeCon.value.swiperIndex>0) {
-  //                     videoRepo.homeCon.value.swipeController.previous(
-  //                         animation: true);
-  //                     }
-  //                   },
-  //                   child:  Padding(
-  //                     padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-  //                     child: Row(
-  //                       children: [
-  //                         // Text(
-  //                         //   "Előző",
-  //                         //   style: TextStyle(
-  //                         //     fontWeight: FontWeiwght.normal,
-  //                         //     color: Colors.white,
-  //                         //   ),
-  //                         // ),
-  //                         Icon(Icons.arrow_circle_down_outlined , size: 50.0, color: Colors.white)
-  //                       ],
-  //                     ),
-  //                   )
-  //               )
-  //
-  //           ),
-  //         ),
-  //
-  //         SizedBox(width: 20,),
-  //         Container(
-  //           child: DecoratedBox(
-  //               decoration: BoxDecoration(
-  //                 shape: BoxShape.rectangle,
-  //                 borderRadius: BorderRadius.circular(15.0),
-  //                 color:  Colors.black87.withOpacity(0.7),
-  //               ),
-  //               child: InkWell(
-  //                   onTap:() {
-  //                     if (videoRepo.homeCon.value.swiperIndex<(filteredIds.length-1)) {
-  //                       videoRepo.homeCon.value.swipeController.next(
-  //                           animation: true);
-  //                     }
-  //                   },
-  //                   child:  Padding(
-  //                     padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-  //                     child: Row(
-  //                       children: [
-  //                         // Text(
-  //                         //   "Következő",
-  //                         //   style: TextStyle(
-  //                         //     fontWeight: FontWeight.normal,
-  //                         //     color: Colors.white,
-  //                         //   ),
-  //                         // ),
-  //                         Icon(Icons.arrow_circle_up_outlined , size: 50.0, color: Colors.white)
-  //
-  //                       ],
-  //                     ),
-  //                   )
-  //               )
-  //
-  //           ),
-  //         ),
-  //
-  //       ],
-  //     ),
-  //   );
-  // }
+  void exitFullScreen() {
+    // html.document.exitFullscreen();
+  }
+  void goFullScreen() {
+    // html.document.documentElement.requestFullscreen();
+  }
+  Widget buildSponsorsWidget(bool next) {
+    return Positioned(
+      left:0,
+      right:0,
+      top: 0,
+      child: Container(
+        height: 40,
+        color: Colors.white,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            Container(
+              child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(15.0),
+                    color:  Colors.black87.withOpacity(0.7),
+                  ),
+                  child: InkWell(
+                      onTap:() {
+
+                      },
+
+                  )
+
+              ),
+            ),
+
+            SizedBox(width: 20,),
+            Container(
+              child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(15.0),
+                    color:  Colors.black87.withOpacity(0.7),
+                  ),
+                  child: InkWell(
+                      onTap:() {
+
+                      },
+
+                  )
+
+              ),
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
 
   TextEditingController _textFieldController = new TextEditingController();
+  TextEditingController _textFieldControllerUjCsapat = new TextEditingController();
+  TextEditingController _textFieldControllerUjJatekos = new TextEditingController();
   String valuePIN = "";
+  String ujCsapatNev = "";
+  bool needDefaults = false;
+  String ujCsapatNevTmp = "";
+  String ujJatekosNev = "";
+  String ujJatekosNevTmp = "";
   String valuePINtmp = "";
   Future<void> _displayTextInputDialog(BuildContext context) {
     return showDialog(
@@ -1361,10 +1672,213 @@ String mSelectedProfile;
         });
   }
 
+  Future<void> _displayUjCsapatDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            // title: Text('Új csapat neve:'),
+            content: Column(
+              children: [
+                // Text('*Nem tartalmazhat szóközt és más speciális karaktereket'),
+                TextField(
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.text,
+                  // inputFormatters: <TextInputFormatter>[
+                  //   FilteringTextInputFormatter.digitsOnly
+                  // ],
+                  onChanged: (value) {
+                    setState(() {
+                      ujCsapatNevTmp = value;
+                    });
+                  },
+                  controller: _textFieldControllerUjCsapat,
+                  decoration: InputDecoration(hintText: "UJCSAPATNEVE"),
+                ),
+              ],
+            ),
+            actions: <Widget>[
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    InkWell(
+                      child: Text('Hozzáadás', style: TextStyle(color:Colors.black ),),
+                      onTap: () {
+                        setState(() {
+                          if (true){
+                            ujCsapatNev = ujCsapatNevTmp.replaceAll("_", "");
+                            ujCsapatNev = ujCsapatNev.replaceAll(".", "");
+                            ujCsapatNev = ujCsapatNev.replaceAll("-", "");
+                            ujCsapatNev = ujCsapatNev.replaceAll(" ", "");
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pop(context);
+                          }
+
+
+                        });
+                      },
+                    ),
+                    InkWell(
+                      child: Text('Hozzáadás(+11 játékos)', style: TextStyle(color:Colors.black ),),
+                      onTap: () {
+                        setState(() {
+                          if (true){
+                            ujCsapatNev = ujCsapatNevTmp.replaceAll("_", "");
+                            ujCsapatNev = ujCsapatNev.replaceAll(".", "");
+                            ujCsapatNev = ujCsapatNev.replaceAll("-", "");
+                            ujCsapatNev = ujCsapatNev.replaceAll(" ", "");
+                            needDefaults = true;
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pop(context);
+                          }
+
+
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+            ],
+          );
+        });
+  }
+
+
+  Future<void> _displayUjJatekosDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Új játékos neve:'),
+            content: TextField(
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.text,
+              // inputFormatters: <TextInputFormatter>[
+              //   FilteringTextInputFormatter.digitsOnly
+              // ],
+              onChanged: (value) {
+                setState(() {
+                  ujJatekosNevTmp = value;
+                });
+              },
+              controller: _textFieldControllerUjJatekos,
+              decoration: InputDecoration(hintText: "pl. Lukacs Jeno"),
+            ),
+            actions: <Widget>[
+              Center(
+                child: InkWell(
+                  child: Icon(Icons.check_circle , size: 50.0, color: Colors.black87),
+                  onTap: () {
+                    setState(() {
+                      if (true){
+                        // ujJatekosNev = ujJatekosNevTmp;
+                        ujJatekosNev = ujJatekosNevTmp.replaceAll("_", "");
+                        ujJatekosNev = ujJatekosNev.replaceAll(".", "");
+                        ujJatekosNev = ujJatekosNev.replaceAll("-", "");
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pop(context);
+                      }
+
+
+                    });
+                  },
+                ),
+              ),
+
+            ],
+          );
+        });
+  }
+  Future<void> _displayUjJatekosSelectDialog(BuildContext context, String team1Name, String team2Name) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Új játékos neve:'),
+            content: TextField(
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.text,
+              // inputFormatters: <TextInputFormatter>[
+              //   FilteringTextInputFormatter.digitsOnly
+              // ],
+              onChanged: (value) {
+                setState(() {
+                  ujJatekosNevTmp = value;
+                });
+              },
+              controller: _textFieldControllerUjJatekos,
+              decoration: InputDecoration(hintText: "pl. Lukacs Jeno"),
+            ),
+            actions: <Widget>[
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    team1Name!=null&& team1Name!=""?InkWell(
+                      child: Text("-> "+team1Name, style: TextStyle(
+                          // decoration: TextDecoration.underline,
+                          color:   Colors.black,
+                          fontSize: 14,fontWeight: FontWeight.normal
+                      )),
+                      onTap: () {
+                        setState(() {
+                          if (true){
+                            secondTeamId = null;
+                            // ujJatekosNev = ujJatekosNevTmp;
+                            ujJatekosNev = ujJatekosNevTmp.replaceAll("_", "");
+                            ujJatekosNev = ujJatekosNev.replaceAll(".", "");
+                            ujJatekosNev = ujJatekosNev.replaceAll("-", "");
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pop(context);
+                          }
+
+
+                        });
+                      },
+                    ):Container(),
+                    team2Name!=null&&team2Name!=""?InkWell(
+                      child: Text("-> "+team2Name, style: TextStyle(
+                          // decoration: TextDecoration.underline,
+                          color:   Colors.black,
+                          fontSize: 14,fontWeight: FontWeight.normal
+                      )),
+                      onTap: () {
+                        setState(() {
+                          if (true){
+                            firstTeamId = null;
+                            // ujJatekosNev = ujJatekosNevTmp;
+                            ujJatekosNev = ujJatekosNevTmp.replaceAll("_", "");
+                            ujJatekosNev = ujJatekosNev.replaceAll(".", "");
+                            ujJatekosNev = ujJatekosNev.replaceAll("-", "");
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pop(context);
+                          }
+
+
+                        });
+                      },
+                    ):Container(),
+                  ],
+                ),
+              ),
+
+            ],
+          );
+        });
+  }
+
 
   Widget buildAdminMenuButton() {
     return Positioned(
-      top:10,
+      top:40,
       left: 0,
       child: InkWell(
         onTap: () async {
@@ -1400,34 +1914,34 @@ String mSelectedProfile;
       )
     );
   }
-  // Widget buildFullScreenButton() {
-  //   return Positioned(
-  //     top:10,
-  //     right: 0,
-  //     child: InkWell(
-  //       onTap: () async {
-  //         if (!isFullScreen) {
-  //           setState(() {isFullScreen = true;});
-  //           goFullScreen();
-  //         } else {
-  //           exitFullScreen();
-  //           setState(() {isFullScreen = false;});
-  //         }
-  //       },
-  //       child: Row(
-  //         children: [
-  //           isFullScreen?Padding(
-  //             padding: const EdgeInsets.all(8.0),
-  //             child: Icon(Icons.fullscreen_exit,  size: 20.0, color: Colors.white),
-  //           ):Padding(
-  //             padding: const EdgeInsets.all(8.0),
-  //             child: Icon(Icons.fullscreen,  size: 20.0, color: Colors.white),
-  //           )
-  //         ],
-  //       ),
-  //     )
-  //   );
-  // }
+  Widget buildFullScreenButton() {
+    return Positioned(
+      top:10,
+      right: 0,
+      child: InkWell(
+        onTap: () async {
+          if (!isFullScreen) {
+            setState(() {isFullScreen = true;});
+            goFullScreen();
+          } else {
+            exitFullScreen();
+            setState(() {isFullScreen = false;});
+          }
+        },
+        child: Row(
+          children: [
+            isFullScreen?Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.fullscreen_exit,  size: 20.0, color: Colors.white),
+            ):Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.fullscreen,  size: 20.0, color: Colors.white),
+            )
+          ],
+        ),
+      )
+    );
+  }
 
 
 
@@ -1437,7 +1951,7 @@ String mSelectedProfile;
       log('200 mSelectedProfile1 ' +mSelectedProfile);
       var headers = {
         'Accept': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
+        'Authorization': tokenFromDb/*'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'*/
 
       };
       if (mSelectedProfile!=null && (mSelectedProfile.contains("FKCS2008")||mSelectedProfile=='playersszereda')){
@@ -1506,7 +2020,7 @@ String mSelectedProfile;
 
       var headers = {
         'Accept': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
+        'Authorization': tokenFromDb/*'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'*/
 
       };
       if (mSelectedProfile!=null  && (mSelectedProfile.contains("FKCS2008")||mSelectedProfile=='playersszereda')){
@@ -1594,7 +2108,7 @@ String mSelectedProfile;
 
       var headers = {
         'Accept': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
+        'Authorization': tokenFromDb/*'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'*/
 
       };
       if (mSelectedProfile!=null  && (mSelectedProfile.contains("FKCS2008")||mSelectedProfile=='playersszereda')){
@@ -1663,8 +2177,8 @@ String mSelectedProfile;
 
     String p = await SharedPreferencesHelper.getSelectedProfile();
     String starter = "?v=";
-    if (p=="1"){
-      starter = "?v1=";
+    if (p!="-1"&& p.length<4){
+      starter = "?v"+p+"=";
     }
     String ids = starter;
     if (filteredIds.length ==0 || !mergeSelects.contains(true)) {
@@ -2668,14 +3182,14 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
                                           Fluttertoast.showToast(msg: value.length.toString()+ " találat."+"\n", toastLength: Toast.LENGTH_LONG );
 
                                           _con.getVideosByFilter(
-                                              filter1, myPlayers, () {}, mSelectedProfile);
+                                              filter1, myPlayers, () {}, mSelectedProfile, tokenFromDb);
                                           Navigator.of(context)
                                               .pushReplacementNamed(
                                               '/redirect-page', arguments: 0);
 
                                         }
                                       });
-                                    }, mSelectedProfile);
+                                    }, mSelectedProfile, tokenFromDb);
 
                                     return;
                                   }
@@ -3221,48 +3735,94 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
                         borderRadius: BorderRadius.circular(15.0),
                         color: Colors.black87,
                       ),
-                      child:myTeams!=null?ListView.builder(
-                        padding:  EdgeInsets.only(left: 0, top: 15, bottom: 0),
-                          itemCount: myTeams==null?0:myTeams.length,
-                          itemBuilder: (context, index){
-                            return  InkWell(
-                                onTap: () async {
-                                  if (filterTeams.contains(myTeams.keys.elementAt(index))) {
-                                    setState(() {
-                                      filterTeams.remove(myTeams.keys.elementAt(index));
-                                    });
-                                    await SharedPreferencesHelper.setFilterTeams(filterTeams);
-                                    setState(() {
-                                      reFilterMatchesAfterTeamSelect();
-                                      reFilterPlayersAfterTeamSelect();
-                                    });
-                                  } else {
-                                    setState(() {
-                                      filterTeams.add(myTeams.keys.elementAt(index));
-                                    });
-                                    await SharedPreferencesHelper.setFilterTeams(filterTeams);
-                                    setState(() {
-                                      reFilterMatchesAfterTeamSelect();
-                                      reFilterPlayersAfterTeamSelect();
-                                    });
+                      child: Stack(
+                        children: [
+                          myTeams!=null?ListView.builder(
+                              padding:  EdgeInsets.only(left: 0, top: 15, bottom: 0),
+                              itemCount: myTeams==null?0:myTeams.length,
+                              itemBuilder: (context, index){
+                                return  InkWell(
+                                    onTap: () async {
+                                      if (filterTeams.contains(myTeams.keys.elementAt(index))) {
+                                        setState(() {
+                                          filterTeams.remove(myTeams.keys.elementAt(index));
+                                        });
+                                        await SharedPreferencesHelper.setFilterTeams(filterTeams);
+                                        setState(() {
+                                          reFilterMatchesAfterTeamSelect();
+                                          reFilterPlayersAfterTeamSelect();
+                                        });
+                                      } else {
+                                        setState(() {
+                                          filterTeams.add(myTeams.keys.elementAt(index));
+                                        });
+                                        await SharedPreferencesHelper.setFilterTeams(filterTeams);
+                                        setState(() {
+                                          reFilterMatchesAfterTeamSelect();
+                                          reFilterPlayersAfterTeamSelect();
+                                        });
 
-                                  }
+                                      }
+
+                                    },
+                                    child: Container(
+                                        width: 200.0,alignment: Alignment.center,
+                                        padding: EdgeInsets.only(left: 0, right: 0, top: 6, bottom: 6),
+                                        child:Text(
+                                          myTeams[myTeams.keys.elementAt(index)],
+                                          style: TextStyle(
+                                              color:  filterTeams.contains(myTeams.keys.elementAt(index))?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
+                                              fontSize: kFontSizeInfoTartalom,fontWeight: filterTeams.contains(myTeams.keys.elementAt(index))?FontWeight.w500:FontWeight.normal
+                                          ),
+                                        ))
+                                );
+                              }
+
+                          ):Container(),
+                          Align(
+                            alignment: Alignment.bottomLeft,
+                            child: Container(
+                              margin: EdgeInsets.only(left: 10),
+                              width: 40,
+                              height: 40,
+                              child: InkWell(
+                                onTap: () {
+                                  SharedPreferencesHelper.getNeedPIN().then((value) async {
+                                    if (value) {
+                                      _displayTextInputDialog(context).whenComplete(() async {
+                                        if (valuePIN == '1010') {
+                                          _displayUjCsapatDialog(context).whenComplete(() async {
+
+                                            if (ujCsapatNev!="") {
+                                              addUjCsapat();
+                                            }
+                                          });
+                                        }
+                                      });
+
+                                    } else {
+                                      _displayUjCsapatDialog(context).whenComplete(() async {
+                                        if (ujCsapatNev!="") {
+                                          addUjCsapat();
+                                        }
+
+                                      });
+                                    }
+                                  });
 
                                 },
-                                child: Container(
-                                    width: 200.0,alignment: Alignment.center,
-                                    padding: EdgeInsets.only(left: 0, right: 0, top: 6, bottom: 6),
-                                    child:Text(
-                                      myTeams[myTeams.keys.elementAt(index)],
-                                      style: TextStyle(
-                                          color:  filterTeams.contains(myTeams.keys.elementAt(index))?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
-                                          fontSize: kFontSizeInfoTartalom,fontWeight: filterTeams.contains(myTeams.keys.elementAt(index))?FontWeight.w500:FontWeight.normal
-                                      ),
-                                    ))
-                            );
-                          }
-
-                      ):Container()
+                                child: Text(
+                                  "+",
+                                  style: TextStyle(
+                                      color:   Colors.white.withOpacity(0.7),
+                                      fontSize: 30,fontWeight: FontWeight.normal
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      )
                   ),
                 ),
                 //////jatekos filter
@@ -3282,38 +3842,83 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
                         borderRadius: BorderRadius.circular(15.0),
                         color: Colors.black87,
                       ),
-                      child:ListView.builder(
-                        padding:  EdgeInsets.only(left: 0, top: 15, bottom: 0),
-                          itemCount: myPlayers.length,
-                          itemBuilder: (context, index){
-                            return  InkWell(
+                      child:Stack(
+                        children: [
+                          myTeams!=null?ListView.builder(
+                              padding:  EdgeInsets.only(left: 0, top: 15, bottom: 0),
+                              itemCount: myPlayers.length,
+                              itemBuilder: (context, index){
+                                return  InkWell(
+                                    onTap: () {
+                                      if (filterNames.contains(myPlayers.keys.elementAt(index))) {
+                                        setState(() {
+                                          filterNames.remove(myPlayers.keys.elementAt(index));
+                                          SharedPreferencesHelper.setFilterNames(filterNames);
+                                        });
+                                      } else {
+                                        setState(() {
+                                          filterNames.add(myPlayers.keys.elementAt(index));
+                                          SharedPreferencesHelper.setFilterNames(filterNames);
+
+                                        });
+                                      }
+                                    },
+                                    child: partOfOneSelectedTeamAtLeast(myPlayers.keys.elementAt(index))?Container(
+                                        width: 200.0,alignment: Alignment.center,
+                                        padding: EdgeInsets.only(left: 0, right: 0, top: 6, bottom: 6),
+                                        child:Text(
+                                          myPlayers[myPlayers.keys.elementAt(index)].name,
+                                          style: TextStyle(
+                                              color:  filterNames.contains(myPlayers.keys.elementAt(index))?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
+                                              fontSize: kFontSizeInfoTartalom,fontWeight: filterNames.contains(myPlayers.keys.elementAt(index))?FontWeight.w500:FontWeight.normal
+                                          ),
+                                        )):Container()
+                                );
+                              }
+
+                          ):Container(),
+                          Align(
+                            alignment: Alignment.bottomLeft,
+                            child: filterTeams!=null&&filterTeams.length == 1?Container(
+                              margin: EdgeInsets.only(left: 10),
+                              width: 40,
+                              height: 40,
+                              child: InkWell(
                                 onTap: () {
-                                  if (filterNames.contains(myPlayers.keys.elementAt(index))) {
-                                    setState(() {
-                                      filterNames.remove(myPlayers.keys.elementAt(index));
-                                      SharedPreferencesHelper.setFilterNames(filterNames);
-                                    });
-                                  } else {
-                                    setState(() {
-                                      filterNames.add(myPlayers.keys.elementAt(index));
-                                      SharedPreferencesHelper.setFilterNames(filterNames);
+                                  SharedPreferencesHelper.getNeedPIN().then((value) async {
+                                    if (value) {
+                                      _displayTextInputDialog(context).whenComplete(() async {
+                                        if (valuePIN == '1010') {
+                                          _displayUjJatekosDialog(context).whenComplete(() async {
 
-                                    });
-                                  }
+                                            if (ujJatekosNev!="") {
+                                              addUjJatekos(filterTeams.last);
+                                            }
+                                          });
+                                        }
+                                      });
+
+                                    } else {
+                                      _displayUjJatekosDialog(context).whenComplete(() async {
+                                        if (ujJatekosNev!="") {
+                                          addUjJatekos(filterTeams.last);
+                                        }
+                                      });
+                                    }
+                                  });
+
                                 },
-                                child: partOfOneSelectedTeamAtLeast(myPlayers.keys.elementAt(index))?Container(
-                                    width: 200.0,alignment: Alignment.center,
-                                    padding: EdgeInsets.only(left: 0, right: 0, top: 6, bottom: 6),
-                                    child:Text(
-                                      myPlayers[myPlayers.keys.elementAt(index)].name,
-                                      style: TextStyle(
-                                          color:  filterNames.contains(myPlayers.keys.elementAt(index))?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
-                                          fontSize: kFontSizeInfoTartalom,fontWeight: filterNames.contains(myPlayers.keys.elementAt(index))?FontWeight.w500:FontWeight.normal
-                                      ),
-                                    )):Container()
-                            );
-                          }
-
+                                child: Text(
+                                  "+",
+                                  style: TextStyle(
+                                      color:   Colors.white.withOpacity(0.7),
+                                      fontSize: 30,fontWeight: FontWeight.normal
+                                  ),
+                                ),
+                              ),
+                            ):Container(),
+                          )
+                        ],
                       )
                   ),
                 ),
@@ -3334,6 +3939,199 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
     );
   }
 
+  String abc = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  void addUjCsapat(){
+    if (mSelectedProfile!='playersszereda') {
+      if (myTeams.containsValue(ujCsapatNev)){
+        Fluttertoast.showToast(msg: "Foglalt ez a csapatnév!", toastLength: Toast.LENGTH_LONG );
+        setState(() {
+          needDefaults = false;
+          ujCsapatNev = "";
+          ujCsapatNevTmp = "";
+          _textFieldControllerUjCsapat.text = "";
+        });
+      } else {
+        String teamsTableName = 'teams_profil' + mSelectedProfile;
+        String docId  = "";
+        FirebaseFirestore.instance.collection(teamsTableName).get().then((
+            QuerySnapshot querySnapshot) {
+          docId = querySnapshot.docs.last.id;
+          querySnapshot.docs.forEach((element) {
+            setState(() {
+
+              myTeams = new Map<String, String>();
+              tokenFromDb = element['token'] as String;
+              teamsMapFromDbForRead = element['teams'] as Map;
+              int k = 0;
+              if (teamsMapFromDbForRead!=null&&teamsMapFromDbForRead.length>0){
+                k = int.parse(getLastFromIterableStringSimple(teamsMapFromDbForRead.keys)/*teamsMapFromDbForRead.keys.last*/);
+              }
+
+              k++;
+              Map<String, String> ujmap = {'id': abc[k-1],'name': ujCsapatNev};
+              teamsMapFromDbForRead.putIfAbsent(k.toString(), () =>ujmap );
+              teamsMapFromDbForRead.forEach((key, value) {
+                myTeams.putIfAbsent(
+                    teamsMapFromDbForRead[key]['id'], () => teamsMapFromDbForRead[key]['name']);
+              });
+              FirebaseFirestore.instance.collection(teamsTableName).doc(docId).set({
+                'teams': teamsMapFromDbForRead
+              }, SetOptions(merge: true));
+
+
+              //default jatekosokat hozzadjuk egybol
+              if (needDefaults) {
+                myPlayers = new Map<String, MyPlayerElem>();
+                for (int i = 0; i < 11; i++) {
+                  String ujn = "Nr " + (i + 1).toString();
+                  String ujid = abc[k - 1];
+                  if (i < 10) {
+                    ujid += "0";
+                  }
+                  ujid += i.toString();
+                  Map<String, String> ujmap = {
+                    'id': ujid,
+                    'name': ujn,
+                    'team_id': abc[k - 1]
+                  };
+                  playersMapFromDbForRead.putIfAbsent(
+                      ujid.toString(), () => ujmap);
+                }
+
+                playersMapFromDbForRead.forEach((key, value) {
+                  myPlayers.putIfAbsent(
+                      key, () =>
+                      MyPlayerElem(playersMapFromDbForRead[key]['id'],
+                          playersMapFromDbForRead[key]['name'],
+                          playersMapFromDbForRead[key]['team_id']));
+                });
+                String playersTableName = 'players_profil' + mSelectedProfile;
+                FirebaseFirestore.instance.collection(playersTableName).doc(
+                    docId).set({
+                  'players': playersMapFromDbForRead
+                }, SetOptions(merge: true));
+              }
+
+
+            });
+            setState(() {
+              needDefaults = false;
+              ujCsapatNev = "";
+              ujCsapatNevTmp = "";
+              _textFieldControllerUjCsapat.text = "";
+            });
+            // SharedPreferencesHelper.setVideoMapForRead(videoMapFromDb);
+
+          });
+        });
+      }
+    }
+  }
+  bool containsPlayer(String p){
+    bool kem = false;
+    myPlayers.forEach((key, value) {
+      if (value.name==p && value.teamId == filterTeams.last){
+        kem = true;
+      }
+    });
+    return kem;
+  }
+  String getLastFromIterableString(Iterable<String> iterable){
+
+    String result = "";
+    int tmp = 0;
+    iterable.forEach((element) {
+      String s = element.substring(1);
+      if (s.startsWith("0")){
+         s = element.substring(1);
+      }
+      int sInt = int.parse(s);
+      if (sInt>=tmp){
+        tmp = sInt;
+        result = element;
+      }
+    });
+    return result;
+  }
+  String getLastFromIterableStringSimple(Iterable<String> iterable){
+
+    String result = "";
+    int tmp = 0;
+    iterable.forEach((element) {
+      // String s = element.substring(1);
+      // if (s.startsWith("0")){
+      //    s = element.substring(1);
+      // }
+      int sInt = int.parse(element);
+      if (sInt>=tmp){
+        tmp = sInt;
+        result = element;
+      }
+    });
+    return result;
+  }
+  void addUjJatekos(String teamKey){
+    if (mSelectedProfile!='playersszereda') {
+      if (containsPlayer(ujJatekosNev)){
+        Fluttertoast.showToast(msg: "Foglalt ez a játékosnév!", toastLength: Toast.LENGTH_LONG );
+        setState(() {
+          ujJatekosNev = "";
+          ujJatekosNevTmp = "";
+          _textFieldControllerUjJatekos.text = "";
+        });
+      } else {
+        String playersTableName = 'players_profil' + mSelectedProfile;
+        String docId  = "";
+        FirebaseFirestore.instance.collection(playersTableName).get().then((
+            QuerySnapshot querySnapshot) {
+          docId = querySnapshot.docs.last.id;
+          querySnapshot.docs.forEach((element) {
+            setState(() {
+
+              playersMapFromDbForRead = element['players'] as Map;
+              String k = teamKey+'00';
+              int kk = int.parse(k.substring(1)) + 1;
+              if (playersMapFromDbForRead!=null&&playersMapFromDbForRead.length>0){
+                k = getLastFromIterableString(playersMapFromDbForRead.keys.where((element) => element.startsWith(teamKey)));
+              }
+              try {
+                kk = int.parse(k.substring(1)) + 1;
+              } catch (e){
+
+              }
+              k = ""+teamKey.toString();
+              if (kk<10){
+                k+="0";
+              }
+              k +=kk.toString();
+              Map<String, String> ujmap = {'id': k,'name': ujJatekosNev,'team_id': teamKey};
+              playersMapFromDbForRead.putIfAbsent(k.toString(), () =>ujmap );
+              myPlayers = new Map<String, MyPlayerElem>();
+              playersMapFromDbForRead.forEach((key, value) {
+                myPlayers.putIfAbsent(
+                    key, () =>
+                    MyPlayerElem(playersMapFromDbForRead[key]['id'],
+                        playersMapFromDbForRead[key]['name'],
+                        playersMapFromDbForRead[key]['team_id']));
+
+              });
+              FirebaseFirestore.instance.collection(playersTableName).doc(docId).set({
+                'players': playersMapFromDbForRead
+              }, SetOptions(merge: true));
+            });
+            setState(() {
+              ujJatekosNev = "";
+              ujJatekosNevTmp = "";
+              _textFieldControllerUjJatekos.text = "";
+            });
+
+            // SharedPreferencesHelper.setVideoMapForRead(videoMapFromDb);
+
+          });
+        });
+      }
+    }
+  }
   bool containsOneSelectedTeamAtLeastOrEmptyTeamSelection(String m){
     if (filterTeams==null || filterTeams.length == 0){
       return true;
@@ -3436,6 +4234,88 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
           }
         }
       });
+
+    } catch(e){
+
+    }
+    return kem;
+  }
+
+  String firstTeamId, firstTeamName, secondTeamId, secondTeamName;
+  String firstTeamIdNameFromMatch(){
+    String kem = "";
+    try {
+      String desc = videoRepo.videosData.value.videos
+          .elementAt(videoRepo.homeCon.value.swiperIndex)
+          .description;
+      if (desc!=null&& desc.contains(" ")){
+        desc = desc.substring(0,desc.indexOf(" ")).trim();
+      }
+      if (desc == null || desc == "") {
+        return "";
+      }
+
+      String csapatN = desc;
+      if (desc.contains("-")){
+        csapatN = desc.split("-")[0];
+      }
+
+
+      myTeams.forEach((key, value) {
+        if (csapatN == value) {
+            kem = csapatN+","+key;
+            setState(() {
+              firstTeamId = key;
+              firstTeamName = csapatN;
+            });
+            return kem;
+        }
+      });
+
+    } catch(e){
+
+    }
+    return kem;
+  }
+  bool valamelyikErvenyesCsapat(){
+    String kem1 = "";
+    String kem2 = "";
+    try {
+      kem1=firstTeamIdNameFromMatch();
+      kem2=secondTeamIdNameFromMatch();
+    } catch(e){
+
+    }
+    return kem1!=""||kem2!="";
+  }
+  String secondTeamIdNameFromMatch(){
+    String kem = "";
+    try {
+      String desc = videoRepo.videosData.value.videos
+          .elementAt(videoRepo.homeCon.value.swiperIndex)
+          .description;
+      if (desc!=null&&desc.contains(" ")){
+        desc = desc.substring(0,desc.indexOf(" ")).trim();
+      }
+      if (desc == null || desc == ""||!desc.contains("-")) {
+        return "";
+      }
+
+      List<String> csapatNArr = desc.split("-");
+      if (csapatNArr.length>0){
+        myTeams.forEach((key, value) {
+          if (csapatNArr[1] == value) {
+            kem = csapatNArr[1]+","+key;
+            setState(() {
+              secondTeamId = key;
+              secondTeamName = csapatNArr[1];
+            });
+            return kem;
+          }
+        });
+      }
+
+
 
     } catch(e){
 
@@ -3680,480 +4560,6 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
         )
     );
   }
-/*
-  Widget infoTartalom2() {
-    return Expanded(
-        flex:3,
-        child:Container(
-            child:*//*ListView*//*Row(
-              // This next line does the trick.
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//              scrollDirection: Axis.horizontal,
-              children: <Widget>[
-                Container(
-                  width: 100.0,
-                ),
-                Container(
-                  margin: EdgeInsets.only(left: 0, top: 40, bottom: 0),
-                  width: 450.0,
-                  child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(15.0),
-                        color: Colors.black87,
-                      ),
-                      child:Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 8,
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  height: 18,
-                                ),
-                                InkWell(
-                                    onTap: () {
-                                      if (filterNames.contains("Nyaradszereda-Erdoszentgyorgy")) {
-                                        setState(() {
-                                          filterNames.remove("Nyaradszereda-Erdoszentgyorgy");
-                                        });
-                                      } else {
-                                        setState(() {
-                                          filterNames.add("Nyaradszereda-Erdoszentgyorgy");
-                                        });
-                                      }
-                                    },
-                                    child: Text(
-                                      "Nyaradszereda-Erdoszentgyorgy",
-                                      style: TextStyle(
-                                          color:  filterNames.contains("Nyaradszereda-Erdoszentgyorgy")?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
-                                          fontSize: kFontSizeInfoTartalom,fontWeight: filterNames.contains("Nyaradszereda-Erdoszentgyorgy")?FontWeight.w500:FontWeight.normal
-                                      ),
-                                    )
-                                ) ,
-                                SizedBox(
-                                  height: 8,
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    if (filterNames.contains("Nyaradszereda-Dribli")) {
-                                      setState(() {
-                                        filterNames.remove("Nyaradszereda-Dribli");
-                                      });
-                                    } else {
-                                      setState(() {
-                                        filterNames.add("Nyaradszereda-Dribli");
-                                      });
-                                    }
-                                  },
-                                  child: Text(
-                                      "Nyaradszereda-Dribli",
-                                      style: TextStyle(
-                                          color: filterNames.contains("Nyaradszereda-Dribli")?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
-                                          fontSize: kFontSizeInfoTartalom,fontWeight: filterNames.contains("Nyaradszereda-Dribli")?FontWeight.w500:FontWeight.normal
-                                      )
-                                  ),
-                                ), SizedBox(
-                                  height: 8,
-                                ),
-                                InkWell(
-                                    onTap: () {
-                                      if (filterNames.contains("Nyaradszereda-Szovata")) {
-                                        setState(() {
-                                          filterNames.remove("Nyaradszereda-Szovata");
-                                        });
-                                      } else {
-                                        setState(() {
-                                          filterNames.add("Nyaradszereda-Szovata");
-                                        });
-                                      }
-                                    },
-                                    child: Text(
-                                      "Nyaradszereda-Szovata",
-                                      style: TextStyle(
-                                          color:  filterNames.contains("Nyaradszereda-Szovata")?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
-                                          fontSize: kFontSizeInfoTartalom,fontWeight: filterNames.contains("Nyaradszereda-Szovata")?FontWeight.w500:FontWeight.normal
-                                      ),
-                                    )),
-                                SizedBox(
-                                  height: 8,
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    if (filterNames.contains("Nyaradszereda-Szekelyudvarhely")) {
-                                      setState(() {
-                                        filterNames.remove("Nyaradszereda-Szekelyudvarhely");
-                                      });
-                                    } else {
-                                      setState(() {
-                                        filterNames.add("Nyaradszereda-Szekelyudvarhely");
-                                      });
-                                    }
-                                  },
-                                  child: Text(
-                                      "Nyaradszereda-Szekelyudvarhely",
-                                      style: TextStyle(
-                                          color:  filterNames.contains("Nyaradszereda-Szekelyudvarhely")?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
-                                          fontSize: kFontSizeInfoTartalom,fontWeight: filterNames.contains("Nyaradszereda-Szekelyudvarhely")?FontWeight.w500:FontWeight.normal
-                                      )),
-                                ),
-                                SizedBox(
-                                  height: 8,
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    if (filterNames.contains("Nyaradszereda-Csikszereda")) {
-                                      setState(() {
-                                        filterNames.remove("Nyaradszereda-Csikszereda");
-                                      });
-                                    } else {
-                                      setState(() {
-                                        filterNames.add("Nyaradszereda-Csikszereda");
-                                      });
-                                    }
-                                  },
-                                  child: Text(
-                                      "Nyaradszereda-Csikszereda",
-                                      style: TextStyle(
-                                          color:  filterNames.contains("Nyaradszereda-Csikszereda")?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
-                                          fontSize: kFontSizeInfoTartalom,fontWeight: filterNames.contains("Nyaradszereda-Csikszereda")?FontWeight.w500:FontWeight.normal
-                                      )),
-                                ), SizedBox(
-                                  height: 8,
-                                ),
-
-
-                              ],
-                            ),
-                            Container(
-                              padding: EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 5),
-                              child: Icon(
-                                Icons.search_outlined,
-                                color: Colors.white,
-                                size: 30.0,
-                              ),
-                            )])
-                  ),
-                ),
-                Container(
-                    margin: EdgeInsets.only(left: 30, top: 40, bottom: 0),
-                    width: 200.0,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(15.0),
-                        color: Colors.black87,
-                      ),
-                      child:Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            "gól",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: kFontSizeInfoTartalom,*//*fontWeight: FontWeight.w500*//*
-                            ),
-                          ),
-
-                          SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            "gólhelyzet",
-                            style: TextStyle(
-                                color: Colors.amber.withOpacity(1.0),
-                                fontSize: kFontSizeInfoTartalom,fontWeight: FontWeight.w500
-                            ),
-                          ),
-                          SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            "csel",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: kFontSizeInfoTartalom,*//*fontWeight: FontWeight.w500*//*
-                            ),
-                          ), SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            "vicces",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: kFontSizeInfoTartalom,*//*fontWeight: FontWeight.w500*//*
-                            ),
-                          ),
-                          SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            "elemzésre",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: kFontSizeInfoTartalom,*//*fontWeight: FontWeight.w500*//*
-                            ),
-                          ), SizedBox(
-                            height: 8,
-                          ),
-
-                        ],
-                      ),
-                    )
-                ),
-                Container(
-                    margin: EdgeInsets.only(left: 30, top: 40, bottom: 0),
-                    width: 70.0,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(15.0),
-                        color: Colors.black87,
-                      ),
-                      child:Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                filterStarsStates[4] =='0'?filterStarsStates[4] ='1':filterStarsStates[4] ='0';
-
-                              });
-                            },
-                            child:
-                            Stack(
-                              children: [
-                                Icon(Icons.star, size: 40.0, color: filterStarsStates[4] =='1'?Colors.amber: Colors.white.withOpacity(0.5),),
-                                Container(
-                                    padding: EdgeInsets.only(left: 0, top: 3, bottom: 0),
-                                    height: 40.0,
-                                    width: 40.0,
-                                    child:
-                                    Align(
-                                        alignment: Alignment.center,
-                                        child: Text("5", style: TextStyle(fontSize:10, color: Colors.black,fontWeight: FontWeight.bold))
-                                    ))
-
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(
-                            height: 8,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                filterStarsStates[3] =='0'?filterStarsStates[3] ='1':filterStarsStates[3] ='0';
-
-                              });
-                            },
-                            child:
-                            Stack(
-                              children: [
-                                Icon(Icons.star, size: 40.0, color: filterStarsStates[3] =='1'?Colors.amber: Colors.white.withOpacity(0.5),),
-                                Container(
-                                    padding: EdgeInsets.only(left: 0, top: 3, bottom: 0),
-                                    height: 40.0,
-                                    width: 40.0,
-                                    child:
-                                    Align(
-                                        alignment: Alignment.center,
-                                        child: Text("4", style: TextStyle(fontSize:10, color: Colors.black,fontWeight: FontWeight.bold))
-                                    ))
-
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(
-                            height: 8,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                filterStarsStates[2] =='0'?filterStarsStates[2] ='1':filterStarsStates[2] ='0';
-
-                              });
-                            },
-                            child:
-                            Stack(
-                              children: [
-                                Icon(Icons.star, size: 40.0, color: filterStarsStates[2] =='1'?Colors.amber: Colors.white.withOpacity(0.5),),
-                                Container(
-                                    padding: EdgeInsets.only(left: 0, top: 3, bottom: 0),
-                                    height: 40.0,
-                                    width: 40.0,
-                                    child:
-                                    Align(
-                                        alignment: Alignment.center,
-                                        child: Text("3", style: TextStyle(fontSize:10, color: Colors.black,fontWeight: FontWeight.bold))
-                                    ))
-
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(
-                            height: 8,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                filterStarsStates[1] =='0'?filterStarsStates[1] ='1':filterStarsStates[1] ='0';
-
-                              });
-                            },
-                            child:
-                            Stack(
-                              children: [
-                                Icon(Icons.star, size: 40.0, color: filterStarsStates[1] =='1'?Colors.amber: Colors.white.withOpacity(0.5),),
-                                Container(
-                                    padding: EdgeInsets.only(left: 0, top: 3, bottom: 0),
-                                    height: 40.0,
-                                    width: 40.0,
-                                    child:
-                                    Align(
-                                        alignment: Alignment.center,
-                                        child: Text("2", style: TextStyle(fontSize:10, color: Colors.black,fontWeight: FontWeight.bold))
-                                    ))
-
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(
-                            height: 8,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                filterStarsStates[0] =='0'?filterStarsStates[0] ='1':filterStarsStates[0] ='0';
-
-                              });
-                            },
-                            child:
-                            Stack(
-                              children: [
-                                Icon(Icons.star, size: 40.0, color: filterStarsStates[0] =='1'?Colors.amber: Colors.white.withOpacity(0.5),),
-                                Container(
-                                    padding: EdgeInsets.only(left: 0, top: 3, bottom: 0),
-                                    height: 40.0,
-                                    width: 40.0,
-                                    child:
-                                    Align(
-                                        alignment: Alignment.center,
-                                        child: Text("1", style: TextStyle(fontSize:10, color: Colors.black,fontWeight: FontWeight.bold))
-                                    ))
-
-                              ],
-                            ),
-                          ),
-
-
-                        ],
-                      ),
-                    )
-                ),
-                Container(
-                  margin: EdgeInsets.only(left: 30, top: 40, bottom: 0),
-                  width: 200.0,
-                  child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(15.0),
-                        color: Colors.black87,
-                      ),
-                      child:Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 8,
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  height: 18,
-                                ),
-                                Text(
-                                  "last day",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
-                                    fontSize: kFontSizeInfoTartalom,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 8,
-                                ),
-                                Text(
-                                  "last 10 days",
-                                  style: TextStyle(
-                                      color: Colors.amber.withOpacity(1.0),
-                                      fontSize: kFontSizeInfoTartalom,fontWeight: FontWeight.w500
-                                  ),
-                                ), SizedBox(
-                                  height: 8,
-                                ),
-                                Text(
-                                  "last 3 month",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
-                                    fontSize: kFontSizeInfoTartalom,*//*fontWeight: FontWeight.w500*//*
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 8,
-                                ),
-                                Text(
-                                  "2020.12.13 - 2020.12.30",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
-                                    fontSize: kFontSizeInfoTartalom,*//*fontWeight: FontWeight.w500*//*
-                                  ),
-                                ), SizedBox(
-                                  height: 8,
-                                ),
-
-
-                              ],
-                            ),
-                            Container(
-                              padding: EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 5),
-                              child: Icon(
-                                Icons.calendar_today,
-                                color: Colors.white,
-                                size: 30.0,
-                              ),
-                            )])
-                  ),
-                ),
-                Container(
-                  width: 100.0,
-                )
-                *//* Container(
-                    width: 1.0,
-                    margin: EdgeInsets.only(left: 0, top: 60, bottom: 30),
-
-                    color: Colors.white.withOpacity(0.5)
-                ),
-                Container(
-                  width: 200.0,
-                ),*//*
-              ],
-            )
-        )
-    );
-  }*/
 
   Widget buildRatingFilter() {
     return Row(
@@ -4737,7 +5143,7 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
 
                                       if (video.videos.length - index == 3) {
                                         videoRepo.homeCon.value
-                                            .listenForMoreVideos(filter1, myPlayers, mSelectedProfile)
+                                            .listenForMoreVideos(filter1, myPlayers, mSelectedProfile, tokenFromDb)
                                             .whenComplete(() {
                                               unawaited(videoRepo.homeCon.value.preCacheVideos());});
                                       }
@@ -4748,7 +5154,7 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
                                       return GestureDetector(
 
                                           onLongPress: () {
-
+                                            // downloadFile();
                                             videoRepo.homeCon.value.videoController(videoRepo.homeCon.value.swiperIndex)?.setPlaybackSpeed(slowSpeed!=-1?0.3:1.0);
 
                                             setState(() {
@@ -5289,7 +5695,7 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
 
       var headers = {
         'Accept': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'
+        'Authorization': tokenFromDb/*'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTY5MDUzMjg1OSwiaWF0IjoxNjU4OTk2ODU5fQ.LiAvXxwjHI3sZfCJS5MBDoaG9MBzq6E4bErPLF8Jd80'*/
 
       };
       if (mSelectedProfile!=null  && (mSelectedProfile.contains("FKCS2008")||mSelectedProfile=='playersszereda')){
@@ -5538,38 +5944,83 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
   }
 
   Widget buildNamesListToDialog( ) {
-    return ListView.builder(
-        itemCount: myPlayers.length,
-        itemBuilder: (context, index){
-          return   partOfOneMatchTeamAtLeast(myPlayers.keys.elementAt(index))?InkWell(
-              onTap: () {
+    return Stack(
+      children: [
+        ListView.builder(
+            itemCount: myPlayers.length,
+            itemBuilder: (context, index){
+              return   partOfOneMatchTeamAtLeast(myPlayers.keys.elementAt(index))?InkWell(
+                  onTap: () {
 
-                if (tagNames.contains(myPlayers.keys.elementAt(index))) {
-                  setState(() {
-                    tagNames.remove(myPlayers.keys.elementAt(index));
-                  });
-                } else {
-                  setState(() {
-                    if (tagNames.length<=1) {
-                      tagNames.add(myPlayers.keys.elementAt(index));
+                    if (tagNames.contains(myPlayers.keys.elementAt(index))) {
+                      setState(() {
+                        tagNames.remove(myPlayers.keys.elementAt(index));
+                      });
+                    } else {
+                      setState(() {
+                        if (tagNames.length<=1) {
+                          tagNames.add(myPlayers.keys.elementAt(index));
+                        }
+
+                      });
                     }
+                  },
+                  child: Container(
+                      width: 200.0,alignment: Alignment.center,
+                      padding: EdgeInsets.only(left: 0, right: 0, top: 6, bottom: 6),
+                      child:Text(
+                        myPlayers[myPlayers.keys.elementAt(index)].name,
+                        style: TextStyle(
+                            color:  tagNames.contains(myPlayers.keys.elementAt(index))?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
+                            fontSize:  MediaQuery.of(context).size.height>800?kFontSizeInfoTartalom:20,fontWeight: tagNames.contains(myPlayers.keys.elementAt(index))?FontWeight.w500:FontWeight.normal
+                        ),
+                      ))
+              ) :Container();
+            }
 
-                  });
-                }
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child:/* filterTeams!=null&&filterTeams.length == 1*/valamelyikErvenyesCsapat()?Container(
+            margin: EdgeInsets.only(top:30,left: 10,right: 10),
+            height: 40,
+            child: InkWell(
+              onTap: () {
+                SharedPreferencesHelper.getNeedPIN().then((value) async {
+                  if (value) {
+                    _displayTextInputDialog(context).whenComplete(() async {
+                      if (valuePIN == '1010') {
+                        _displayUjJatekosSelectDialog(context, firstTeamName, secondTeamName).whenComplete(() async {
+
+                          if (ujJatekosNev!=""&&(firstTeamId!=null||secondTeamId!=null)) {
+                            addUjJatekos(firstTeamId!=null?firstTeamId:secondTeamId);
+                          }
+                        });
+                      }
+                    });
+
+                  } else {
+                    _displayUjJatekosSelectDialog(context, firstTeamName, secondTeamName).whenComplete(() async {
+                      if (ujJatekosNev!=""&&(firstTeamId!=null||secondTeamId!=null)) {
+                        addUjJatekos(firstTeamId!=null?firstTeamId:secondTeamId);
+                      }
+                    });
+                  }
+                });
+
               },
-              child: Container(
-                  width: 200.0,alignment: Alignment.center,
-                  padding: EdgeInsets.only(left: 0, right: 0, top: 6, bottom: 6),
-                  child:Text(
-                    myPlayers[myPlayers.keys.elementAt(index)].name,
-                    style: TextStyle(
-                        color:  tagNames.contains(myPlayers.keys.elementAt(index))?Colors.amber.withOpacity(1.0):Colors.white.withOpacity(0.7),
-                        fontSize:  MediaQuery.of(context).size.height>800?kFontSizeInfoTartalom:20,fontWeight: tagNames.contains(myPlayers.keys.elementAt(index))?FontWeight.w500:FontWeight.normal
-                    ),
-                  ))
-          ) :Container();
-        }
-
+              child: Text(
+                "+ Új játékos",
+                style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    color:   Colors.white.withOpacity(0.97),
+                    fontSize: 15,fontWeight: FontWeight.bold
+                ),
+              ),
+            ),
+          ):Container(),
+        )
+      ],
     );
 
   }
@@ -5827,7 +6278,7 @@ print('xxxxxxxxxxxxxxx'+isOpenedFilterWindow.toString());
                       });
 
                     });
-                  }, mSelectedProfile);
+                  }, mSelectedProfile, tokenFromDb);
                   Navigator.of(context).pushReplacementNamed('/redirect-page', arguments: 0);
                   return;
                 },

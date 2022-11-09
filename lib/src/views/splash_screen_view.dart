@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../controllers/splash_screen_controller.dart';
 import '../repositories/user_repository.dart' as userRepo;
 import '../repositories/video_repository.dart' as videoRepo;
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 class SplashScreenMy extends StatefulWidget {
   String deepList = null;
   @override
@@ -57,14 +57,21 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
               });
             });
 
-          } else if (_link.contains("?v1=")) {
-            _link = _link.split("?v1=")[1];
+          } else if (_link.contains("?v")) {
+            _link = _link.split("?v")[1];
+            String pString = _link.substring(0,_link.indexOf("="));
+            try {
+              _link = _link.substring(_link.indexOf("=") + 1);
+            } catch(e){
+            }
+
+
             SharedPreferencesHelper.setDeepLinkIds(
                 _link.split(",")).then((value) {
-              SharedPreferencesHelper.setDeepLinkProfile('1').then((value) {
+              SharedPreferencesHelper.setDeepLinkProfile(pString).then((value) {
                 setState(() {
                   isDeepLink = 'true';
-                deepProfile = '1';});
+                deepProfile = pString;});
               });
             });
           } else {
@@ -103,6 +110,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
 //    ]);
 //     loadData();
 
+    // getProfilesFromDb();
     getSharedPrefs();
   }
 
@@ -114,6 +122,26 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
     }
   }
 
+  Map<String, dynamic> profilesMapFromDb  = new Map<String, dynamic>();
+  void getProfilesFromDb() async {
+    FirebaseFirestore.instance.collection("profiles").get().then((
+        QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((element) {
+        setState(() {
+          profilesMapFromDb = element['profiles_map'] as Map;
+          // profilesMapFromDb.forEach((key, value) {
+          //   myTeamsStringPrefix=myTeamsStringPrefix+teamsMapFromDbForRead[key]['name']+",";
+          //
+          // });
+
+        });
+
+        // SharedPreferencesHelper.setVideoMapForRead(videoMapFromDb);
+
+      });
+
+    });
+  }
   void loadData(String profilString) async {
     try {
       await SharedPreferencesHelper.setRangeStart('last');
@@ -149,7 +177,6 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
   final linkController = TextEditingController();
   bool isAlreadyTapped = false;
   DateTime currentBackPressTime;
-
   @override
   Widget build(BuildContext context) {
     setState(() => this.context = context);
@@ -168,19 +195,26 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
       child: isDeepLink!=''?
       Material(
         child: Container(
-          color:Colors.black,
+          alignment: Alignment.topCenter,
+
+          color: const Color(0xff231f20),
           child: Stack(
             children: <Widget>[
-              Container(
+              Align(
+               alignment: Alignment.topCenter,
+                child: Container(
 
+                  height: 100,
+                  alignment: Alignment.topCenter,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
 
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  image: DecorationImage(
-                    image: AssetImage(
-                      "assets/images/splash.png",
+                    image: DecorationImage(
+                      image: AssetImage(
+                        "assets/images/splashlapos.png",
+                      ),
+                      fit: BoxFit.scaleDown,
                     ),
-                    fit: BoxFit.scaleDown,
                   ),
                 ),
               ),
@@ -190,95 +224,95 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    InkWell(
-                      onTap: () async {
-                        bool b = await SharedPreferencesHelper.getNeedPIN();
-                        SharedPreferences preferences = await SharedPreferences.getInstance();
-                        await preferences.clear();
-                        await SharedPreferencesHelper.setNeedPIN(b);
-                        if (!isAlreadyTapped) {
-                          loadData('playersszereda');
-                        }
-                        setState(() {
-                          isAlreadyTapped = true;
-                        });
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
-                        alignment: Alignment.center,
-                        child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.circular(15.0),
-                              color:  Colors.red.withOpacity(0.4),
-                            ),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "FK CSíkszereda / Nyárádszereda",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        bool b = await SharedPreferencesHelper.getNeedPIN();
-                        SharedPreferences preferences = await SharedPreferences.getInstance();
-                        await preferences.clear();
-                        await SharedPreferencesHelper.setNeedPIN(b);
-                        if (!isAlreadyTapped) {
-                          loadData('1');
-                        }
-                        setState(() {
-                          isAlreadyTapped = true;
-                        });
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
-                        alignment: Alignment.center,
-                        child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.circular(15.0),
-                              color:  Colors.red.withOpacity(0.4),
-                            ),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Teszt Profil 1.",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-
-                        ),
-                      ),
-                    ),
+                    // InkWell(
+                    //   onTap: () async {
+                    //     bool b = await SharedPreferencesHelper.getNeedPIN();
+                    //     SharedPreferences preferences = await SharedPreferences.getInstance();
+                    //     await preferences.clear();
+                    //     await SharedPreferencesHelper.setNeedPIN(b);
+                    //     if (!isAlreadyTapped) {
+                    //       loadData('playersszereda');
+                    //     }
+                    //     setState(() {
+                    //       isAlreadyTapped = true;
+                    //     });
+                    //   },
+                    //   child: Container(
+                    //     margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
+                    //     alignment: Alignment.center,
+                    //     child: DecoratedBox(
+                    //         decoration: BoxDecoration(
+                    //           shape: BoxShape.rectangle,
+                    //           borderRadius: BorderRadius.circular(15.0),
+                    //           color:  Colors.red.withOpacity(0.4),
+                    //         ),
+                    //         child: Center(
+                    //           child: Padding(
+                    //             padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+                    //             child: Row(
+                    //               mainAxisAlignment: MainAxisAlignment.center,
+                    //               children: [
+                    //                 Text(
+                    //                   "FK CSíkszereda / Nyárádszereda",
+                    //                   style: TextStyle(
+                    //                     fontWeight: FontWeight.normal,
+                    //                     color: Colors.white,
+                    //                   ),
+                    //                 ),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //         )
+                    //
+                    //     ),
+                    //   ),
+                    // ),
+                    // InkWell(
+                    //   onTap: () async {
+                    //     bool b = await SharedPreferencesHelper.getNeedPIN();
+                    //     SharedPreferences preferences = await SharedPreferences.getInstance();
+                    //     await preferences.clear();
+                    //     await SharedPreferencesHelper.setNeedPIN(b);
+                    //     if (!isAlreadyTapped) {
+                    //       loadData('1');
+                    //     }
+                    //     setState(() {
+                    //       isAlreadyTapped = true;
+                    //     });
+                    //   },
+                    //   child: Container(
+                    //     margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
+                    //     alignment: Alignment.center,
+                    //     child: DecoratedBox(
+                    //         decoration: BoxDecoration(
+                    //           shape: BoxShape.rectangle,
+                    //           borderRadius: BorderRadius.circular(15.0),
+                    //           color:  Colors.red.withOpacity(0.4),
+                    //         ),
+                    //         child: Center(
+                    //           child: Padding(
+                    //             padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+                    //             child: Row(
+                    //               mainAxisAlignment: MainAxisAlignment.center,
+                    //               children: [
+                    //                 Text(
+                    //                   "Teszt Profil 1.",
+                    //                   style: TextStyle(
+                    //                     fontWeight: FontWeight.normal,
+                    //                     color: Colors.white,
+                    //                   ),
+                    //                 ),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //         )
+                    //
+                    //     ),
+                    //   ),
+                    // ),
                     Container(
                       height: 40,
-                      margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
+                      margin: EdgeInsets.only(left: 40,right: 40, bottom: 10),
                       child: Row(
                         children: [
                         Container(
@@ -340,7 +374,7 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                     ),
                     Container(
                       height: 40,
-                      margin: EdgeInsets.only(left: 40,right: 40, bottom: 20),
+                      margin: EdgeInsets.only(left: 40,right: 40, bottom: 10),
                       child: Row(
                         children: [
                         Container(
@@ -387,13 +421,21 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                                                     });
                                                   });
 
-                                                } else if (_link.contains("?v1=")) {
-                                                  _link = _link.split("?v1=")[1];
+                                                } else if (_link.contains("?v")) {
+
+                                                  _link = _link.split("?v")[1];
+                                                  String pString = _link.substring(0,_link.indexOf("="));
+                                                  try {
+                                                    _link = _link.substring(_link.indexOf("=") + 1);
+                                                  } catch(e){
+                                                  }
+                                                  print('deeplink _link_link:'+_link);
+                                                  print('deeplink _link_linkpStringpString:'+pString);
                                                   SharedPreferencesHelper.setDeepLinkIds(
                                                       _link.split(",")).then((value) {
-                                                    SharedPreferencesHelper.setDeepLinkProfile('1').then((value) {
+                                                    SharedPreferencesHelper.setDeepLinkProfile(pString).then((value) {
                                                       setState(() { isDeepLink = 'true';
-                                                      deepProfile = '1';});
+                                                      deepProfile = pString;});
                                                     });
                                                   });
                                                 } else {
@@ -444,18 +486,177 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                   ],
                 ),
               ),
-              isAlreadyTapped?Align(
-                alignment: Alignment.bottomCenter,
+
+              Align(
+                alignment: Alignment.topRight,
                 child: Container(
-                  margin: EdgeInsets.only(bottom: 50),
-                  width: 40,
-                  height: 40,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8),
+                  child: InkWell(
+                    onTap: () async {
+                      bool b = await SharedPreferencesHelper.getNeedPIN();
+                      SharedPreferences preferences = await SharedPreferences.getInstance();
+                      await preferences.clear();
+                      await SharedPreferencesHelper.setNeedPIN(b);
+                      if (!isAlreadyTapped) {
+                        loadData('playersszereda');
+                      }
+                      setState(() {
+                        isAlreadyTapped = true;
+                      });
+                    },
+                    child: Container(
+                      height: 60,
+                      width: 60,
+                      alignment: Alignment.center,
+                      child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            borderRadius: BorderRadius.circular(15.0),
+                            color:  Colors.red.withOpacity(0.4),
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "FKCS",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+
+                      ),
+                    ),
                   ),
                 ),
-              ):Container()
+              ),
+
+              Align(
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('profiles')
+                          .snapshots(),
+                      builder:
+                          (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+                        switch (snapshot.connectionState) {
+                          // case ConnectionState.waiting:
+                          //   return new Text('Loading...');
+                          default:
+                            return snapshot==null||snapshot.data==null?Container():Container(
+                              height: 80,
+
+                              color: Colors.transparent,
+                              child: ListView.builder(
+                                  shrinkWrap: true,
+                                  scrollDirection: Axis.horizontal,
+                                  reverse: false,
+                                  itemCount: snapshot.data.docs.length,
+                                  itemBuilder: (context, index) {
+                                    // var result = snapshot.data.docs[index]['profiles_map'];
+                                    return  Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 10, right: 10, top: 10, bottom: 0),
+                                      child: Container(
+                                        padding: const EdgeInsets.only(
+                                            left: 30, right: 30, top: 0, bottom: 0),
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.white.withOpacity(0.5),
+                                                spreadRadius: 1.5,
+                                                blurRadius: 1.5,
+                                                //offset: Offset(0, 1), // changes position of shadow
+                                              ),
+                                            ],
+                                            borderRadius: BorderRadius.circular(5),
+                                            border: Border.all(
+                                                color: Colors.red[200],
+                                                width: 0.5,
+                                                style: BorderStyle.solid)),
+                                        child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: <Widget>[
+                                              // for (var res in result.entries)
+                                              InkWell(
+                                                onTap: ()async {
+                                                  bool b = await SharedPreferencesHelper.getNeedPIN();
+                                                  SharedPreferences preferences = await SharedPreferences.getInstance();
+                                                  await preferences.clear();
+                                                  await SharedPreferencesHelper.setNeedPIN(b);
+                                                  if (!isAlreadyTapped) {
+                                                    loadData(snapshot.data.docs[snapshot.data.docs.length-(index+1)]['id']);
+                                                  }
+                                                  setState(() {
+                                                    isAlreadyTapped = true;
+                                                  });
+                                                }
+                                                ,child:  Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+
+                                                    snapshot.data.docs[snapshot.data.docs.length-(index+1)]['name'],
+                                                    style: TextStyle(
+                                                        fontSize: 20, color: Colors.red[500]),
+                                                  ),
+                                                  Container(
+                                                    margin: EdgeInsets.only(top: 10),
+                                                    child: Text(
+
+                                                      snapshot.data.docs[snapshot.data.docs.length-(index+1)]['description'],
+                                                      style: TextStyle(
+                                                          fontSize: 14, color: Colors.black45),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              ),
+
+                                            ]),
+                                      ),
+
+                                    );
+                                  }),
+                            );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              isAlreadyTapped?InkWell(
+                child: Container(
+                  color: Colors.black.withOpacity(0.6),
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  child: Center(
+                    child: Container(
+                      width: 40,
+                      height:40,
+                      margin: EdgeInsets.only(bottom: 50),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ):Container(),
             ],
           ),
         ),
@@ -464,38 +665,111 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
           color:Colors.black,
           child: Stack(
             children: <Widget>[
-              Container(
+              Align(
+                alignment: Alignment.topCenter,
+                child: Container(
 
+                  height: 100,
+                  alignment: Alignment.topCenter,
+                  decoration: BoxDecoration(
 
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  image: DecorationImage(
-                    image: AssetImage(
-                      "assets/images/splash.png",
+                    image: DecorationImage(
+                      image: AssetImage(
+                        "assets/images/splashlapos.png",
+                      ),
+                      fit: BoxFit.scaleDown,
                     ),
-                    fit: BoxFit.scaleDown,
                   ),
                 ),
               ),
 
-              isAlreadyTapped?Align(
-                alignment: Alignment.bottomCenter,
+              isAlreadyTapped?InkWell(
                 child: Container(
-                  margin: EdgeInsets.only(bottom: 50),
-                  width: 40,
-                  height: 40,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                  color: Colors.black.withOpacity(0.6),
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  child: Center(
+                    child: Container(
+                      width: 40,
+                      height:40,
+                      margin: EdgeInsets.only(bottom: 50),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
                   ),
                 ),
-              ):Container()
+              ):Container(),
+
             ],
           ),
         ),
       ),
     );
   }
+/*
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('fddf'),
+        ),
+        body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('profiles')
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+                return new Text('Loading...');
+              default:
+                return Container(
 
+                  child: ListView.builder(
+                      itemCount: snapshot.data.docs.length,
+                      itemBuilder: (context, index) {
+                        // var result = snapshot.data.docs[index]['profiles_map'];
+                        return  Padding(
+                            padding: const EdgeInsets.only(
+                                left: 10, right: 10, top: 10, bottom: 0),
+                            child: Container(
+                              height: 50,
+                              width: 300,
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.white.withOpacity(0.5),
+                                      spreadRadius: 1.5,
+                                      blurRadius: 1.5,
+                                      //offset: Offset(0, 1), // changes position of shadow
+                                    ),
+                                  ],
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                      color: Colors.red[200],
+                                      width: 0.5,
+                                      style: BorderStyle.solid)),
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    // for (var res in result.entries)
+                                      Text(
+                                        snapshot.data.docs[index]['name'],
+                                        style: TextStyle(
+                                            fontSize: 20, color: Colors.red[500]),
+                                      ),
+                                  ]),
+                            ),
 
+                        );
+                      }),
+                );
+            }
+          },
+    )
+    );}*/
 }

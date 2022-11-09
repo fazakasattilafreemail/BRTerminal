@@ -284,7 +284,7 @@ class DashboardController extends ControllerMVC {
     });
   }
 
-  Future<void> getVideos({String defaultFilter,Map<String, MyPlayerElem> myPlayers, String selProfile}) async {
+  Future<void> getVideos({String defaultFilter,Map<String, MyPlayerElem> myPlayers, String selProfile, String tokenFromDb}) async {
     swiperIndex = 0;
     swiperIndex2 = 0;
     videoRepo.videosData.value.videos = [];
@@ -302,7 +302,7 @@ class DashboardController extends ControllerMVC {
       }
     }
     print("getvideossssssssss1 original");
-    videoRepo.getVideos(page, myfilter, myPlayers,null, selProfile, "last_match" ).then((data1) async {
+    videoRepo.getVideos(page, myfilter, myPlayers,null, selProfile, "last_match" ,tokenFromDb).then((data1) async {
       if (data1.videos != null) {
         if (data1.videos.length > 0) {
           initController(0).whenComplete(() {
@@ -326,7 +326,7 @@ class DashboardController extends ControllerMVC {
       }
     });
   }
-  Future<void> getVideosByFilter(String filter1, Map<String, MyPlayerElem> myPlayers, VoidCallback callBackForFilteredLength, String selProfile) async {
+  Future<void> getVideosByFilter(String filter1, Map<String, MyPlayerElem> myPlayers, VoidCallback callBackForFilteredLength, String selProfile, String tokenFromDb) async {
     swiperIndex = 0;
     swiperIndex2 = 0;
     videoRepo.videosData.value.videos = [];
@@ -345,7 +345,7 @@ class DashboardController extends ControllerMVC {
     }
     print("getvideossssssssss2 getVideosByFilter ");
 
-    videoRepo.getVideos(page, myfilter, myPlayers , callBackForFilteredLength, selProfile).then((data1) async {
+    videoRepo.getVideos(page, myfilter, myPlayers , callBackForFilteredLength, selProfile, "",tokenFromDb).then((data1) async {
       if (data1.videos != null) {
         if (data1.videos.length > 0) {
           initController(0).whenComplete(() {
@@ -399,7 +399,7 @@ class DashboardController extends ControllerMVC {
     });
   }
 
-  Future<void> listenForMoreVideos(String filter1,Map<String, MyPlayerElem> myPlayers , String selP) async {
+  Future<void> listenForMoreVideos(String filter1,Map<String, MyPlayerElem> myPlayers , String selP, String tokenFromDb) async {
     Map obj = {'userId': 0, 'videoId': 0};
     if (userVideoObj != null) {
       if (userVideoObj.value['userId'] > 0) {
@@ -410,7 +410,7 @@ class DashboardController extends ControllerMVC {
     page = page + 1;
     print("getvideossssssssss3 listenForMoreVideos");
 
-    videoRepo.getVideos(page, myfilter, myPlayers, null, selP).whenComplete(() {
+    videoRepo.getVideos(page, myfilter, myPlayers, null, selP, "",tokenFromDb).whenComplete(() {
       loadMoreUpdateView.value = true;
       loadMoreUpdateView.notifyListeners();
     });

@@ -23,6 +23,7 @@ class SplashScreenController extends ControllerMVC {
 
   Map<String, dynamic> teamsMapFromDbForRead = new Map<String, dynamic>();
 
+  String tokenFromDb = "";
   Future<void> initializeVideos(String profilString) async {
     print('SPLASHHHHHHHHHHHHHHHHHHHHHHgetvideos1');
     this.scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -42,6 +43,7 @@ class SplashScreenController extends ControllerMVC {
           QuerySnapshot querySnapshot) {
         querySnapshot.docs.forEach((element) {
           setState(() {
+            tokenFromDb = element['token'] as String;
             teamsMapFromDbForRead = element['teams'] as Map;
             teamsMapFromDbForRead.forEach((key, value) {
               myTeamsStringPrefix=myTeamsStringPrefix+teamsMapFromDbForRead[key]['name']+",";
@@ -104,8 +106,8 @@ class SplashScreenController extends ControllerMVC {
 
       });
       if (myPlayers!=null) {
-        print('SPLASHHHHHHHHHHHHHHHHHHHHHH getVideos players');
-        await videoRepo.homeCon.value.getVideos(myPlayers: myPlayers, selProfile:prefForSelProfil );
+        print('SPLASHHHHHHHHHHHHHHHHHHHHHH getVideos players prefForSelProfil::'+prefForSelProfil);
+        await videoRepo.homeCon.value.getVideos(myPlayers: myPlayers, selProfile:prefForSelProfil, tokenFromDb: tokenFromDb);
       } else {
         print('SPLASHHHHHHHHHHHHHHHHHHHHHH getVideos no players');
         await videoRepo.homeCon.value.getVideos( selProfile:prefForSelProfil);
