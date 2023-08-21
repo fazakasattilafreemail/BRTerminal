@@ -15,8 +15,11 @@ class SharedPreferencesHelper {
   static final String _kSelectedProfile = "selectedprofile";
   static final String _kRangeEnd = "rangeend";
   static final String _kLastVideosResponse = "lastvideosresponse";
+  static final String _kAutPlayMode = "autPlayMode";
   static final String _kShowMerge = "show_merge";
   static final String _kNeedPIN = "need_pin";
+  static final String _kNeedLazaPIN = "need_laza_pin";
+  static final String _kNeedLaza2PIN = "need_laza2_pin";
   static final String _kVideoMapForRead = "videoMapForRead";
   static final String _kVideoMap = "videoMap";
   static final String _kFilterMatches = "filtermatches";
@@ -201,6 +204,16 @@ class SharedPreferencesHelper {
 
     return prefs.getBool(_kShowMerge) ?? false;
   }
+  static Future<bool> getAutPlayMode() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.getBool(_kAutPlayMode) ?? false;
+  }
+  static Future<bool> setAutPlayMode(bool value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.setBool(_kAutPlayMode, value);
+  }
   static Future<bool> setShowMerge(bool value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -215,6 +228,26 @@ class SharedPreferencesHelper {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     return prefs.setBool(_kNeedPIN, value);
+  }
+  static Future<bool> getNeedLazaPIN() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.getBool(_kNeedLazaPIN) ?? true;
+  }
+  static Future<bool> setNeedLazaPIN(bool value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.setBool(_kNeedLazaPIN, value);
+  }
+  static Future<bool> getNeedLaza2PIN() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.getBool(_kNeedLaza2PIN) ?? true;
+  }
+  static Future<bool> setNeedLaza2PIN(bool value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.setBool(_kNeedLaza2PIN, value);
   }
 
   static Future< Map<String, dynamic>> getVideoMap() async {

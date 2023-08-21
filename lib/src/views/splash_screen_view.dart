@@ -593,17 +593,41 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
                                             children: <Widget>[
                                               // for (var res in result.entries)
                                               InkWell(
-                                                onTap: ()async {
+                                                onTap: () async {
                                                   bool b = await SharedPreferencesHelper.getNeedPIN();
+                                                  bool bLaza = await SharedPreferencesHelper.getNeedLazaPIN();
+                                                  bool bLaza2 = await SharedPreferencesHelper.getNeedLaza2PIN();
                                                   SharedPreferences preferences = await SharedPreferences.getInstance();
                                                   await preferences.clear();
                                                   await SharedPreferencesHelper.setNeedPIN(b);
-                                                  if (!isAlreadyTapped) {
-                                                    loadData(snapshot.data.docs[snapshot.data.docs.length-(index+1)]['id']);
+                                                  await SharedPreferencesHelper.setNeedLazaPIN(bLaza);
+                                                  await SharedPreferencesHelper.setNeedLaza2PIN(bLaza2);
+
+                                                  bool feltetel = b && bLaza2;
+                                                  if (snapshot.data.docs[snapshot.data.docs.length-(index+1)]['id'] == '3') {
+                                                    feltetel = b && bLaza;
                                                   }
-                                                  setState(() {
-                                                    isAlreadyTapped = true;
-                                                  });
+
+                                                  if (feltetel) {
+                                                    _displayTextInputDialog(context,snapshot.data.docs[snapshot.data.docs.length-(index+1)]['pin'],snapshot.data.docs[snapshot.data.docs.length-(index+1)]['id'] == '3').whenComplete(() async {
+                                                      if (valuePIN == '1010' || valuePIN == snapshot.data.docs[snapshot.data.docs.length-(index+1)]['pin']) {
+                                                        if (!isAlreadyTapped) {
+                                                          loadData(snapshot.data.docs[snapshot.data.docs.length-(index+1)]['id']);
+                                                        }
+                                                        setState(() {
+                                                          isAlreadyTapped = true;
+                                                        });
+                                                      }
+                                                    });
+
+                                                  } else {
+                                                    if (!isAlreadyTapped) {
+                                                      loadData(snapshot.data.docs[snapshot.data.docs.length-(index+1)]['id']);
+                                                    }
+                                                    setState(() {
+                                                      isAlreadyTapped = true;
+                                                    });
+                                                  }
                                                 }
                                                 ,child:  Column(
                                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -707,6 +731,64 @@ class SplashScreenMyState extends StateMVC<SplashScreenMy> {
         ),
       ),
     );
+  }
+  String valuePIN = "";
+  String valuePINtmp = "";
+  TextEditingController _textFieldController = new TextEditingController();
+  Future<void> _displayTextInputDialog(BuildContext context, String pinLaza, bool egysesLazaTipus) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('PIN szükséges'),
+            content: TextField(
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+              onChanged: (value) {
+                setState(() {
+                  valuePINtmp = value;
+                });
+              },
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "PIN"),
+            ),
+            actions: <Widget>[
+              Center(
+                child: InkWell(
+                  child: Icon(Icons.check_circle , size: 50.0, color: Colors.black87),
+                  onTap: () {
+                    setState(() {
+                      if (valuePINtmp == '1010'){
+                        valuePIN = valuePINtmp;
+                        SharedPreferencesHelper.setNeedPIN(false).then((value) =>
+                            Navigator.pop(context));
+                      } else if (valuePINtmp == pinLaza){
+                        valuePIN = valuePINtmp;
+                        if(egysesLazaTipus) {
+                          SharedPreferencesHelper.setNeedLazaPIN(false).then((
+                              value) =>
+                              Navigator.pop(context));
+                        } else  {
+                          SharedPreferencesHelper.setNeedLaza2PIN(false).then((
+                              value) =>
+                              Navigator.pop(context));
+                        }
+                      } else {
+                        Navigator.pop(context);
+                      }
+
+
+                    });
+                  },
+                ),
+              ),
+
+            ],
+          );
+        });
   }
 /*
   @override

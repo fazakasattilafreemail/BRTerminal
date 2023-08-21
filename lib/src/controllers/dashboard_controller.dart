@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:Leuke/src/helpers/shared_pref.dart';
 import 'package:Leuke/src/models/my_models.dart';
 import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ import '../repositories/user_repository.dart' as userRepo;
 import '../repositories/video_repository.dart' as videoRepo;
 import '../services/CacheManager.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 class DashboardController extends ControllerMVC {
   int videoId = 0;
   bool completeLoaded = false;
@@ -130,6 +132,21 @@ class DashboardController extends ControllerMVC {
   bool isEnd = false;
   bool onTap = false;
   Future<void> initializeVideoPlayerFuture;
+
+
+
+
+  Map<String, dynamic> teamsMapFromDbForRead = new Map<String, dynamic>();
+
+  String tokenFromDb = "";
+  Map<String, dynamic> playersMapFromDbForRead = new Map<String, dynamic>();
+  Map<String, dynamic> commentsMapFromDbForRead = new Map<String, dynamic>();
+  Map<String,MyPlayerElem> myPlayers;
+  Map<String,MyPlayerElem> myComments;
+  // String url = "${GlobalConfiguration().get('node_url')}";
+
+
+
   @override
   initState() {
 
@@ -168,6 +185,180 @@ class DashboardController extends ControllerMVC {
     super.dispose();
   }
 
+  Future<void> initializeVideos(String profilString) async {
+    print('SPLASHHHHHHHHHHHHHHHHHHHHHHgetvideos1');
+    this.scaffoldKey = new GlobalKey<ScaffoldState>();
+    await SharedPreferencesHelper.setLastVideosResponse('');
+
+    // String profilString= "1";
+    String commensTableName = 'comments_profil'+profilString;
+    String playersTableName = 'players_profil'+profilString;
+    String teamsTableName = 'teams_profil'+profilString;
+    // String playersTableName = 'playersszereda';
+    if (profilString=='playersszereda'){
+      playersTableName = 'playersszereda';
+    }
+    if (profilString=='playersszereda'){
+      commensTableName = 'comments';
+    }
+
+    String myTeamsStringPrefix = "";
+    print('playersTableName::'+playersTableName);
+    print('teamsTableName::'+teamsTableName);
+    if (playersTableName != 'playersszereda') {
+      FirebaseFirestore.instance.collection(teamsTableName).get().then((
+          QuerySnapshot querySnapshot) {
+        print('querySnapshot::'+querySnapshot.docs.length.toString());
+
+        querySnapshot.docs.forEach((element) {
+          print('querySnapsdssdsddshot::');
+          // setState(() {
+            print('querySnapshot::'+querySnapshot.docs.length.toString());
+            tokenFromDb = element['token'] as String;
+            print('tokenFromDb::'+tokenFromDb.toString());
+            teamsMapFromDbForRead = element['teams'] as Map;
+            teamsMapFromDbForRead.forEach((key, value) {
+              myTeamsStringPrefix=myTeamsStringPrefix+teamsMapFromDbForRead[key]['name']+",";
+
+            });
+            if (myTeamsStringPrefix.length>1 && myTeamsStringPrefix[myTeamsStringPrefix.length-1]==","){
+              myTeamsStringPrefix = myTeamsStringPrefix.substring(0, myTeamsStringPrefix.length-1);
+            }
+          // });
+
+          // SharedPreferencesHelper.setVideoMapForRead(videoMapFromDb);
+
+        });
+        // getPlayersFromDB(playersTableName, profilString);
+        getPlayersFromDB(playersTableName, myTeamsStringPrefix);
+
+      });
+    } else {
+      getPlayersFromDB(playersTableName, "FKCS2008,FKCS2009,FKCS2010,FKCS2011,FKCS2013,Nyaradszereda2009,Nyaradszereda2011,Nyaradszereda2013");
+    }
+    if (commensTableName != 'comments') {
+      getCommentsFromDB(commensTableName, myTeamsStringPrefix);
+    } else {
+      // getPlayersFromDB(playersTableName, "FKCS2008,FKCS2009,FKCS2010,FKCS2011,FKCS2013,Nyaradszereda2009,Nyaradszereda2011,Nyaradszereda2013");
+    }
+
+
+  }
+
+
+  void getPlayersFromDB(String playersTableName, String prefForSelProfil){
+
+    FirebaseFirestore.instance.collection(playersTableName).get().then((QuerySnapshot querySnapshot) async {
+
+
+      querySnapshot.docs.forEach((element) {
+
+
+        // setState(() {
+          myPlayers = new Map<String, MyPlayerElem>();
+          playersMapFromDbForRead = element['players'] as Map;
+          myPlayers = new Map<String, MyPlayerElem>();
+          playersMapFromDbForRead.forEach((key, value) {
+
+            if (playersTableName == 'playersszereda') {
+              if (!key.startsWith("1")) {
+                myPlayers.putIfAbsent(
+                    key, () =>
+                    MyPlayerElem(playersMapFromDbForRead[key]['id'],
+                        playersMapFromDbForRead[key]['name'],
+                        key.substring(0, 1)));
+              }
+            } else {
+              myPlayers.putIfAbsent(
+                  key, () =>
+                  MyPlayerElem(playersMapFromDbForRead[key]['id'],
+                      playersMapFromDbForRead[key]['name'],
+                      playersMapFromDbForRead[key]['team_id']));
+            }
+
+          });
+
+        // });
+
+        // SharedPreferencesHelper.setVideoMapForRead(videoMapFromDb);
+
+      });
+      // if (myPlayers!=null) {
+      //   print('DASHBOARD getVideos players prefForSelProfil::'+prefForSelProfil);
+      //   await videoRepo.homeCon.value.getVideos(myPlayers: myPlayers, selProfile:prefForSelProfil, tokenFromDb: tokenFromDb);
+      // } else {
+      //   print('DASHBOARD getVideos no players');
+      myfilter = null;
+        await videoRepo.homeCon.value.getVideos( selProfile:prefForSelProfil, tokenFromDb: tokenFromDb);
+      // }
+      print('DASHBOARDHHHHHHHHHHHHgetvideos2');
+      videoRepo.homeCon.notifyListeners();
+    });
+  }
+  void getCommentsFromDB(String commentsTableName, String prefForSelProfil){
+
+    FirebaseFirestore.instance.collection(commentsTableName).get().then((QuerySnapshot querySnapshot) async {
+
+
+      querySnapshot.docs.forEach((element) {
+
+
+        // setState(() {
+          myComments = new Map<String, MyPlayerElem>();
+          commentsMapFromDbForRead = element['comments'] as Map;
+          myComments = new Map<String, MyPlayerElem>();
+          commentsMapFromDbForRead.forEach((key, value) {
+
+            if (commentsTableName == 'comments') {
+              // if (!key.startsWith("1")) {
+              //   myPlayers.putIfAbsent(
+              //       key, () =>
+              //       MyPlayerElem(playersMapFromDbForRead[key]['id'],
+              //           playersMapFromDbForRead[key]['name'],
+              //           key.substring(0, 1)));
+              // }
+            } else {
+              myComments.putIfAbsent(
+                  key, () =>
+                  MyPlayerElem(commentsMapFromDbForRead[key]['id'],
+                      commentsMapFromDbForRead[key]['name'],
+                      commentsMapFromDbForRead[key]['team_id']));
+            }
+
+          });
+
+        // });
+
+        // SharedPreferencesHelper.setVideoMapForRead(videoMapFromDb);
+
+      });
+      // if (myPlayers!=null) {
+      //   print('DASHBOARD getVideos players prefForSelProfil::'+prefForSelProfil);
+      //   await videoRepo.homeCon.value.getVideos(myPlayers: myPlayers, selProfile:prefForSelProfil, tokenFromDb: tokenFromDb);
+      // } else {
+      //   print('DASHBOARD getVideos no players');
+      // myfilter = null;
+      //   await videoRepo.homeCon.value.getVideos( selProfile:prefForSelProfil, tokenFromDb: tokenFromDb);
+      // // }
+      // print('DASHBOARDHHHHHHHHHHHHgetvideos2');
+      // videoRepo.homeCon.notifyListeners();
+    });
+  }
+  connectUserSocket() async {
+    // print("connectUserSocket");
+    // try {
+    //   socket = IO.io(url, <String, dynamic>{
+    //     'transports': ['websocket'],
+    //     'autoConnect': true,
+    //   });Play1
+    //   socketRepo.clientSocket.value = socket;
+    //   socketRepo.clientSocket.notifyListeners();
+    //   socket.emit("user-id", userRepo.currentUser.value.userId);
+    // } catch (e) {
+    //   print("catch socket");
+    //   print(e.toString());
+    // }
+  }
 
   updateSwiperIndex(int index) {
     swiperIndex = index;
@@ -566,12 +757,14 @@ class DashboardController extends ControllerMVC {
       videoControllers[videoRepo.videosData.value.videos.elementAt(index).url] = controller;
       initializeVideoPlayerFutures[videoRepo.videosData.value.videos.elementAt(index).url] = controller.initialize();
       controller.setLooping(true);
+
       // controller.addListener(() {endListener1(index);});
 
     } catch (e) {
       print("Init Catch Error: " + e);
     }
   }
+
 
   Future<VideoPlayerController> getControllerForVideo(String video) async {
     try {
@@ -581,7 +774,9 @@ class DashboardController extends ControllerMVC {
 
       if (fileInfo == null || fileInfo.file == null) {
         unawaited(DefaultCacheManager().downloadFile(video).whenComplete(() => print('saved video url $video')));
-        controller = VideoPlayerController.network(video);
+        controller = VideoPlayerController.network(video)/*..initialize().then((_) {
+          setState(() {});
+        })*/;
         controller.setVolume(volume);
         return controller;
       } else {
@@ -706,7 +901,7 @@ class DashboardController extends ControllerMVC {
       print("cachedcontroller1");
       videoControllers2[videoRepo.followingUsersVideoData.value.videos.elementAt(index).url] = controller;
       initializeVideoPlayerFutures2[videoRepo.followingUsersVideoData.value.videos.elementAt(index).url] = controller.initialize();
-      controller.setLooping(false);
+      controller.setLooping(true);
       controller.addListener(endListener2);
     } catch (e) {
       print("Init Catch Error: " + e);
@@ -714,7 +909,7 @@ class DashboardController extends ControllerMVC {
   }
 
   bool alreadyGrowed = false;
-
+  Duration zeroDuration = new Duration(days:0, hours:0,minutes:0,seconds:0,milliseconds:0,microseconds:0,);
   //TODO endlistenereket kigyomlalni miutan szurt peldaul
   void endListener1(int videoIndex){
 //    print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 videoIndex ' + videoIndex.toString());
@@ -728,33 +923,65 @@ class DashboardController extends ControllerMVC {
 //       updateHistory(videoRepo.videosData.value.videos.elementAt(videoIndex).videoId.toString());
 //
 //     }
-      if(videoRepo.videosData.value.videos.length > videoIndex && videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.position == videoControllers[videoRepo.videosData .value.videos.elementAt(videoIndex).url].value.duration) {
-      print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 1');
+  if (videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url] != null &&
+      videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.duration>zeroDuration) {
+    print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 aspectRatio ' + videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.aspectRatio.toString());
+    print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 isInitialized ' + videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.isInitialized.toString());
+    print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 size ' + videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.size.toString());
+
+    // print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 POSITION ' +
+    //     videoControllers[videoRepo.videosData.value.videos
+    //         .elementAt(videoIndex)
+    //         .url].value.position.toString());
+    // print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 DURATION ' +
+    //     videoControllers[videoRepo.videosData.value.videos
+    //         .elementAt(videoIndex)
+    //         .url].value.duration.toString());
+    // print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 HAERROR ' +
+    //     videoControllers[videoRepo.videosData.value.videos
+    //         .elementAt(videoIndex)
+    //         .url].value.hasError.toString());
+    if (videoRepo.videosData.value.videos.length > videoIndex &&
+        ((videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.hasError) ||
+            (videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.position > zeroDuration &&
+                videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.position ==
+                    videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].value.duration))) {
       print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 index ' + index.toString());
-      print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 videoindex ' + videoIndex.toString());
-      print('>>>>>>>>>>>>>>>>>>>>>>endlistener1  videoRepo.videosData.value.videos.length.toString() ' + videoRepo.videosData.value.videos.length.toString());
-      print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 url ' + videoRepo.videosData.value.videos
-          .elementAt(videoIndex)
-          .url);
+      print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 videoindex ' +
+          videoIndex.toString());
       if (videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url] != null &&
           videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].hasListeners) {
         videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].removeListener(() {
           print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 ujra');
-          endListener1(videoIndex);
+          // endListener1(videoIndex);
         });
         videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].seekTo(Duration(seconds: 0, minutes: 0, hours: 0)).whenComplete(() {
           print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 whenComplete');
-          videoControllers[videoRepo.videosData.value.videos
-              .elementAt(videoIndex)
-              .url].pause();
+          videoControllers[videoRepo.videosData.value.videos.elementAt(videoIndex).url].pause();
         });
-        if (videoRepo.videosData.value.videos.length >( videoIndex+1)) {
-          print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 swipeController.next(animation: true);');
+        if (videoRepo.videosData.value.videos.length > (videoIndex + 1)) {
+          print(
+              '>>>>>>>>>>>>>>>>>>>>>>endlistener1 swipeController.next(animation: true);');
           swipeController.next(animation: true);
+        } else if (videoRepo.videosData.value.videos.length == (videoIndex + 1)) {
+          print(
+              '>>>>>>>>>>>>>>>>>>>>>>endlistener1 swipeController. vegen');
+          swipeController.move(0,animation: true);
         }
         print('>>>>>>>>>>>>>>>>>>>>>>endlistener1 removed');
       }
     }
+  } else {
+    if (videoRepo.videosData.value.videos.length > (videoIndex + 1)) {
+      print(
+          'bedogles miatt');
+      swipeController.next(animation: true);
+    } else if (videoRepo.videosData.value.videos.length == (videoIndex + 1)) {
+      print(
+          '>>>>>>>>>>>>>>>>>>>>>>endlistener1 swipeController. vegen');
+      swipeController.move(0,animation: true);
+    }
+      }
 
   }
   void endListener2(){

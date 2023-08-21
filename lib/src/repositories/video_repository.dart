@@ -189,7 +189,7 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
     }
     print('get lastVideosResponse1 selProfile: '+selProfile==null?"null":"nem null");
     String lastVideosResponse =  await SharedPreferencesHelper.getLastVideosResponse();
-    print('get lastVideosResponse2: '+lastVideosResponse);
+    // print('get lastVideosResponse2: '+lastVideosResponse);
     print('get tokenFromDbtokenFromDb: '+tokenFromDb);
     var response = null;
     if (lastVideosResponse==null ||lastVideosResponse=='') {
@@ -251,39 +251,44 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
 
 
 
-        //EZ A RESZ KISZEDVE, H BARMILYEN CSAPAT BEJOJJON
-        /*String selectedProfilFilter = selProfile;
+        //EZ A RESZ csak akkor menjen hozza, ha egy olyan profilban vagyunk, aminek nincs minden nevu csapata
+        String selectedProfilFilter = selProfile;
+        if (!selProfile.contains('MINDEN')) {
+          // String selectedProfilFilter = "FKCS2008,FKCS2009,FKCS2010,FKCS2011,FKCS2013,Nyaradszereda2009,Nyaradszereda2011,Nyaradszereda2013";
+          String pref = "&prefix=";
+          if (pref != '&prefix=') {
+            pref += ",";
+          }
+          pref += selectedProfilFilter;
+          if (!url.contains('&prefix=') && pref != '&prefix=' &&
+              !pref.endsWith(",")) {
+            url += pref;
+          }
+        }
+
+        //
+        /*  String selectedProfilFilter = selProfile;
         // String selectedProfilFilter = "FKCS2008,FKCS2009,FKCS2010,FKCS2011,FKCS2013,Nyaradszereda2009,Nyaradszereda2011,Nyaradszereda2013";
         String pref = "&prefix=";
         if (pref!='&prefix='){
           pref+=",";
         }
-        pref+=selectedProfilFilter;
-        if (pref!='&prefix=' && !pref.endsWith(",")){
-          url+=pref;
+        print('vegso url22 selProfile: '+selProfile);
+        if (selProfile.contains('GYERGYO')){
+        // if (double.tryParse(selProfile) != null){
+          print('vegso url22 pref: '+pref);
+          pref=pref+"\_"+"3"+"\_";
+          if (!url.contains('&prefix=') && pref!='&prefix=' && !pref.endsWith(",")){
+            url+=pref;
+            print('vegso url22 pref2: '+pref);
+          }
+        } else {
+          pref+=selectedProfilFilter;
         }*/
 
 
-
-
-        //
-        // String selectedProfilFilter = selProfile;
-        // // String selectedProfilFilter = "FKCS2008,FKCS2009,FKCS2010,FKCS2011,FKCS2013,Nyaradszereda2009,Nyaradszereda2011,Nyaradszereda2013";
-        // String pref = "&prefix=";
-        // if (pref!='&prefix='){
-        //   pref+=",";
-        // }
-        // if (double.tryParse(selProfile) != null){
-        //   pref=pref+"\_"+selProfile+"\_";
-        // } else {
-        //   pref+=selectedProfilFilter;
-        // }
-        //
-        // if (pref!='&prefix=' && !pref.endsWith(",")){
-        //   url+=pref;
-        // }
       }
-      print('vegso url: '+url);
+      print('vegso url22: '+url);
       response = await http.get(url, headers: headers)
           .timeout(const Duration(seconds: 60));
     } else{
@@ -292,7 +297,9 @@ Future<VideoModel> getVideos(page, FilterElem filterElem, Map<String, MyPlayerEl
 
     }
     if ((response!=null && response.statusCode == 200)|| (lastVideosResponse!=null &&lastVideosResponse!='') ) {
-
+      if (response!=null) {
+        print('vegso url response: ' + response.statusCode.toString());
+      }
       print('200 BR videos ' +deepIds.toString());
       var responseJson;
       if (response!=null &&  response.statusCode == 200) {

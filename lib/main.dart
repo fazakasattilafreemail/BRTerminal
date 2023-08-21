@@ -94,9 +94,7 @@ class _MyAppState extends State<MyApp> {
   Future<String> initUniLinks() async {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      print('deeplink getInitialLink start');
       final initialLink = await getInitialLink();
-      print('deeplink getInitialLink end');
       String _link = initialLink;
       // Fluttertoast.showToast(msg: link);
       // try {

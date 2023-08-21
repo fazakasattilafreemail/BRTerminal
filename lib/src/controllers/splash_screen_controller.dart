@@ -18,7 +18,9 @@ class SplashScreenController extends ControllerMVC {
   GlobalKey<ScaffoldState> scaffoldKey;
   IO.Socket socket;
   Map<String, dynamic> playersMapFromDbForRead = new Map<String, dynamic>();
+  Map<String, dynamic> commentsMapFromDbForRead = new Map<String, dynamic>();
   Map<String,MyPlayerElem> myPlayers;
+  Map<String,MyPlayerElem> myComments;
   // String url = "${GlobalConfiguration().get('node_url')}";
 
   Map<String, dynamic> teamsMapFromDbForRead = new Map<String, dynamic>();
@@ -30,11 +32,15 @@ class SplashScreenController extends ControllerMVC {
     await SharedPreferencesHelper.setLastVideosResponse('');
 
     // String profilString= "1";
+    String commentsTableName = 'comments_profil'+profilString;
     String playersTableName = 'players_profil'+profilString;
     String teamsTableName = 'teams_profil'+profilString;
     // String playersTableName = 'playersszereda';
     if (profilString=='playersszereda'){
       playersTableName = 'playersszereda';
+    }
+    if (profilString=='playersszereda'){
+      commentsTableName = 'comments';
     }
 
     String myTeamsStringPrefix = "";
@@ -63,6 +69,11 @@ class SplashScreenController extends ControllerMVC {
       });
     } else {
       getPlayersFromDB(playersTableName, "FKCS2008,FKCS2009,FKCS2010,FKCS2011,FKCS2013,Nyaradszereda2009,Nyaradszereda2011,Nyaradszereda2013");
+    }
+    if (commentsTableName != 'comments') {
+      getCommentsFromDB(commentsTableName, myTeamsStringPrefix);
+    } else {
+      // getPlayersFromDB(playersTableName, "FKCS2008,FKCS2009,FKCS2010,FKCS2011,FKCS2013,Nyaradszereda2009,Nyaradszereda2011,Nyaradszereda2013");
     }
 
 
@@ -114,6 +125,55 @@ class SplashScreenController extends ControllerMVC {
       }
       print('SPLASHHHHHHHHHHHHHHHHHHHHHHgetvideos2');
       videoRepo.homeCon.notifyListeners();
+    });
+  }
+
+  void getCommentsFromDB(String commentsTableName, String prefForSelProfil){
+
+    FirebaseFirestore.instance.collection(commentsTableName).get().then((QuerySnapshot querySnapshot) async {
+
+
+      querySnapshot.docs.forEach((element) {
+
+
+        setState(() {
+          myComments = new Map<String, MyPlayerElem>();
+          commentsMapFromDbForRead = element['comments'] as Map;
+          myComments = new Map<String, MyPlayerElem>();
+          commentsMapFromDbForRead.forEach((key, value) {
+
+            if (commentsTableName == 'comments') {
+              // if (!key.startsWith("1")) {
+              //   myPlayers.putIfAbsent(
+              //       key, () =>
+              //       MyPlayerElem(playersMapFromDbForRead[key]['id'],
+              //           playersMapFromDbForRead[key]['name'],
+              //           key.substring(0, 1)));
+              // }
+            } else {
+              myComments.putIfAbsent(
+                  key, () =>
+                  MyPlayerElem(commentsMapFromDbForRead[key]['id'],
+                      commentsMapFromDbForRead[key]['name'],
+                      commentsMapFromDbForRead[key]['team_id']));
+            }
+
+          });
+
+        });
+
+        // SharedPreferencesHelper.setVideoMapForRead(videoMapFromDb);
+
+      });
+     /* if (myPlayers!=null) {
+        print('SPLASHHHHHHHHHHHHHHHHHHHHHH getVideos players prefForSelProfil::'+prefForSelProfil);
+        await videoRepo.homeCon.value.getVideos(myPlayers: myPlayers, selProfile:prefForSelProfil, tokenFromDb: tokenFromDb);
+      } else {
+        print('SPLASHHHHHHHHHHHHHHHHHHHHHH getVideos no players');
+        await videoRepo.homeCon.value.getVideos( selProfile:prefForSelProfil);
+      }
+      print('SPLASHHHHHHHHHHHHHHHHHHHHHHgetvideos2');
+      videoRepo.homeCon.notifyListeners();*/
     });
   }
   connectUserSocket() async {

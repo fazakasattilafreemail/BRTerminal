@@ -74,7 +74,9 @@ volume = 1;
 
         print('[VideoControllerService]: Saving video to cache');
         unawaited(CustomCacheManager.instance.downloadFile(widget.videoObj.url).whenComplete(() => print('saved video url ${widget.videoObj.url}')));
-        controller = VideoPlayerController.network(widget.videoObj.url);
+        controller = VideoPlayerController.network(widget.videoObj.url)/*..initialize().then((_) {
+          setState(() {});
+        });*/;
 // controller.setVolume(volume);
         widget.videoController = controller;
       } else {
